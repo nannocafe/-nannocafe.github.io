@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nano Café · Fidelidad</title>
+<style>
+:root{--cream:#f7f0e7;--latte:#ead8c7;--brown:#5a3d2e;--dark:#34251e;--gold:#b58a52;--white:#fffaf5}
+*{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--cream);color:var(--dark)}
+.app{max-width:430px;margin:auto;min-height:100vh;padding:24px 18px 40px}
+.logo{text-align:center;font-weight:800;letter-spacing:2px;color:var(--brown);font-size:15px}
+.subtitle{text-align:center;color:#80695b;font-size:13px;margin-top:4px}
+.card{margin-top:22px;background:var(--white);border-radius:28px;padding:25px 20px;box-shadow:0 10px 30px #5a3d2e18}
+h1{font-size:25px;text-align:center;margin:0 0 5px;color:var(--brown)}
+.name{text-align:center;font-size:17px;font-weight:700;margin-bottom:22px}
+.cups{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:0 auto 20px;max-width:330px}
+.cup{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:#eee2d8;font-size:27px;border:1px solid #e0d0c3}
+.cup.full{background:var(--latte);border-color:var(--gold)}
+.progress{height:10px;background:#eadfd7;border-radius:99px;overflow:hidden}.bar{height:100%;width:80%;background:var(--brown);border-radius:99px}
+.count{text-align:center;font-size:17px;font-weight:800;margin-top:13px;color:var(--brown)}
+.reward{text-align:center;margin-top:14px;font-size:14px;color:#745b4c}
+button{width:100%;border:0;border-radius:15px;padding:14px;font-size:16px;font-weight:800;background:var(--brown);color:white;cursor:pointer;margin-top:16px}
+button.secondary{background:#ead8c7;color:var(--brown)}
+.admin{margin-top:25px;background:#fffaf5;border-radius:22px;padding:20px;box-shadow:0 8px 25px #5a3d2e12}
+.admin h2{font-size:18px;margin:0 0 14px;color:var(--brown)}
+input{width:100%;padding:13px;border:1px solid #dbc9ba;border-radius:12px;background:white;font-size:15px}
+.small{font-size:12px;color:#8a7568;margin-top:10px;line-height:1.4}
+.status{margin-top:12px;text-align:center;font-size:13px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="logo">NANO CAFÉ</div>
+  <div class="subtitle">Tarjeta de fidelidad</div>
+
+  <section class="card">
+    <h1>Tu tarjeta ☕</h1>
+    <div class="name" id="customerName">Natalia</div>
+    <div class="cups" id="cups"></div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="count" id="count"></div>
+    <div class="reward" id="reward"></div>
+  </section>
+
+  <section class="admin">
+    <h2>Panel de Nano Café</h2>
+    <input id="nameInput" placeholder="Nombre del cliente" value="Natalia">
+    <button onclick="addCoffee()">+1 café comprado</button>
+    <button class="secondary" onclick="resetCard()">Nuevo ciclo (usar el regalo)</button>
+    <div class="status" id="status"></div>
+    <div class="small">Prototipo local: los datos quedan guardados en este navegador. La versión online conectará cada cliente a una base de datos y podrá usar QR.</div>
+  </section>
+</div>
+
+<script>
+let coffees = Number(localStorage.getItem('nanoCoffees') || 4);
+let name = localStorage.getItem('nanoName') || 'Natalia';
+const total=5;
+
+function render(){
+  document.getElementById('customerName').textContent=name;
+  const box=document.getElementById('cups'); box.innerHTML='';
+  for(let i=1;i<=total;i++){
+    const d=document.createElement('div'); d.className='cup'+(i<=coffees?' full':''); d.textContent=i<=coffees?'☕':'○'; box.appendChild(d);
+  }
+  document.getElementById('bar').style.width=(coffees/total*100)+'%';
+  document.getElementById('count').textContent=`${coffees} / ${total} cafés`;
+  document.getElementById('reward').textContent=coffees>=4?'Compraste 4 cafés. El 5.º es de regalo 🎁':'Seguí acumulando cafés para tu próximo regalo.';
+}
+function addCoffee(){
+  name=document.getElementById('nameInput').value.trim() || 'Cliente';
+  if(coffees>=4){document.getElementById('status').textContent='🎁 Ya alcanzaste el regalo. Tocá “Nuevo ciclo” para empezar de nuevo.'; return;}
+  coffees++;
+  localStorage.setItem('nanoCoffees',coffees); localStorage.setItem('nanoName',name);
+  document.getElementById('status').textContent=coffees===4?'🎁 ¡Listo! El próximo café es gratis.':'☕ Café sumado.';
+  render();
+}
+function resetCard(){
+  coffees=0; localStorage.setItem('nanoCoffees',0);
+  document.getElementById('status').textContent='Nuevo ciclo iniciado.';
+  render();
+}
+render();
+</script>
+</body>
+</html>

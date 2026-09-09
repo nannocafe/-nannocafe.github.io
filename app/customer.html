@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#6b4636">
+<title>Mi tarjeta · Nanno Café</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="shell narrow">
+
+  <header class="brand centered">
+    <b class="logo">N</b>
+    <div><h1>Nanno Café</h1><p>Mi tarjeta de fidelidad</p></div>
+  </header>
+
+  <section id="card" class="card center">Cargando…</section>
+
+  <section class="card center">
+    <h3>¿Cómo funciona?</h3>
+    <p>Comprás 4 cafés y el <b>5.º es gratis</b>. 🎁</p>
+    <p>Guardá este link en tu celular y mostralo en Nanno Café.</p>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>window.Nanno.initCustomer()</script>
+</body>
+</html>

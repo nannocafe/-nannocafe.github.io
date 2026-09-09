@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#6b4636">
+<title>Escanear · Nanno Café</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="shell">
+
+  <header class="top">
+    <div><h1>Nanno Café</h1><p>Escanear tarjeta</p></div>
+    <a href="index.html" class="ghost">Panel</a>
+  </header>
+
+  <!-- Cámara ----------------------------------------------------------- -->
+  <section id="scanner" class="card">
+    <div id="reader"></div>
+    <p id="status" class="center">Apuntá la cámara al QR del cliente.</p>
+    <button id="manual" class="ghost full">Ingresar código manualmente</button>
+    <div id="manualBox" class="hidden">
+      <form id="manualForm">
+        <label>Código del QR<input id="manualCode" autocomplete="off"></label>
+        <button class="primary full">Buscar cliente</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Cliente encontrado ----------------------------------------------- -->
+  <section id="customer" class="card hidden">
+    <div class="customer">
+      <b id="avatar"></b>
+      <div><h2 id="customerName"></h2></div>
+    </div>
+
+    <div id="stamps" class="stamps"></div>
+    <p id="progress" class="center"></p>
+
+    <div class="actions">
+      <button id="add" class="primary">＋1 café comprado</button>
+      <button id="gift" class="secondary hidden">🎁 Entregar café de regalo</button>
+    </div>
+
+    <!-- Aparece si se intenta sumar dos cafés casi al mismo tiempo -->
+    <div id="confirmRapid" class="card hidden">
+      <p class="center">Recién le sumaste un café a este cliente.
+         ¿Compró dos cafés?</p>
+      <div class="actions">
+        <button id="confirmRapidYes" class="primary">Sí, sumar otro</button>
+        <button id="confirmRapidNo" class="ghost">No, fue sin querer</button>
+      </div>
+    </div>
+
+    <p id="message" class="center"></p>
+
+    <button id="scanAnother" class="ghost full">📷 Escanear otro cliente</button>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>window.Nanno.initScan()</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#6b4636">
+<title>Nanno Café Fidelidad</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="shell">
+
+  <header class="brand">
+    <b class="logo">N</b>
+    <div><h1>Nanno Café</h1><p>Panel de fidelidad</p></div>
+  </header>
+
+  <!-- Login ------------------------------------------------------------ -->
+  <section id="login" class="card">
+    <h2>Ingresar</h2>
+    <form id="loginForm">
+      <label>Email<input id="email" type="email" autocomplete="username" required></label>
+      <label>Contraseña<input id="password" type="password" autocomplete="current-password" required></label>
+      <button class="primary">Ingresar</button>
+      <p id="loginError" class="error"></p>
+    </form>
+  </section>
+
+  <!-- Usuario logueado pero sin permiso ------------------------------- -->
+  <section id="noStaff" class="card hidden">
+    <h2>Cuenta sin permiso</h2>
+    <p>Tu usuario existe pero todavía no está habilitado como personal de Nanno Café.
+       Pedile al dueño que te dé de alta.</p>
+    <button id="noStaffLogout" class="ghost">Salir</button>
+  </section>
+
+  <!-- Panel ------------------------------------------------------------ -->
+  <section id="app" class="hidden">
+    <header class="top">
+      <div><h2>Panel Nanno Café</h2><p>Clientes · cafés · regalos · historial</p></div>
+      <button id="logout" class="ghost">Salir</button>
+    </header>
+
+    <div class="stats">
+      <div><small>Clientes</small><strong id="clientsCount">0</strong></div>
+      <div><small>Cafés</small><strong id="coffeeCount">0</strong></div>
+      <div><small>Regalos usados</small><strong id="giftCount">0</strong></div>
+    </div>
+
+    <div class="actions">
+      <a class="action" href="scan.html">📷 Escanear QR</a>
+      <button id="newClient" class="action">＋ Nuevo cliente</button>
+    </div>
+
+    <section class="card">
+      <div class="top">
+        <h3>Clientes</h3>
+        <input id="search" placeholder="Buscar nombre o teléfono">
+      </div>
+      <p><small>Tocá un cliente para ver su historial o editarlo.</small></p>
+      <div id="clientList"></div>
+    </section>
+  </section>
+
+</main>
+
+<!-- Alta de cliente ---------------------------------------------------- -->
+<dialog id="dialog">
+  <form id="clientForm">
+    <button type="button" id="close" class="close">×</button>
+    <h2>Nuevo cliente</h2>
+    <label>Nombre<input id="name" required></label>
+    <label>Teléfono<input id="phone" type="tel" oninput="window.Nanno.chequearDuplicado()"></label>
+    <p id="dupWarning" class="error hidden"></p>
+    <button class="primary">Crear y mostrar QR</button>
+    <p id="clientError" class="error"></p>
+  </form>
+</dialog>
+
+<!-- Detalle de cliente ------------------------------------------------- -->
+<dialog id="clientDialog">
+  <button type="button" id="detailClose" class="close">×</button>
+  <div class="customer">
+    <b id="detailAvatar"></b>
+    <div><h2 id="detailName"></h2><p id="detailPhone"></p></div>
+  </div>
+
+  <div id="detailStamps" class="stamps"></div>
+
+  <div class="actions">
+    <a id="openCard" class="action" target="_blank" rel="noopener">Ver tarjeta y QR</a>
+  </div>
+
+  <form id="editForm">
+    <h3>Editar datos</h3>
+    <label>Nombre<input id="editName" required></label>
+    <label>Teléfono<input id="editPhone" type="tel"></label>
+    <button class="primary">Guardar cambios</button>
+  </form>
+  <p id="detailError" class="error"></p>
+
+  <h3>Historial</h3>
+  <div id="detailHistory"></div>
+
+  <div class="actions">
+    <button type="button" id="deactivate" class="ghost">Dar de baja</button>
+  </div>
+  <div id="confirmDeactivate" class="card hidden">
+    <p>El cliente deja de aparecer en el panel y su QR deja de funcionar.
+       El historial se conserva.</p>
+    <div class="actions">
+      <button type="button" id="confirmDeactivateYes" class="primary">Sí, dar de baja</button>
+      <button type="button" id="cancelDeactivate" class="ghost">Cancelar</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
