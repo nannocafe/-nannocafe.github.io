@@ -11,3 +11,8 @@ dialog h3{margin:22px 0 0}
 .client[role=button]:hover{background:#faf5f1}
 #dupWarning{background:#fff7ef;border:1px solid #e6cdb4;border-radius:11px;padding:10px;color:#8a5a20}
 button:disabled{opacity:.55;cursor:progress}
+
+/* --- logo de la marca --- */
+.logo.brandmark{background:#f7f0de;border-radius:50%}
+.logo.brandmark img{width:52%;height:auto;display:block}
+.top .brand{margin:0}
