@@ -94,11 +94,33 @@
     return `Faltan ${faltan} café${faltan === 1 ? '' : 's'} para el regalo.`;
   }
 
+  /* Dirección base contra la que se arma el link de una tarjeta.
+     Si no hay PUBLIC_BASE_URL configurada, se resuelve relativo a la página
+     actual (que es lo correcto: index.html y customer.html son hermanos). */
+  function baseTarjeta() {
+    const configurada = (CONFIG.PUBLIC_BASE_URL || '').trim();
+    if (!configurada) return location.href;
+    try {
+      const u = new URL(configurada);
+      if (!u.pathname.endsWith('/')) {
+        // Tolera que hayan pegado la URL completa con archivo (.../index.html):
+        // en ese caso vale la carpeta que lo contiene.
+        const ultimo = u.pathname.split('/').pop();
+        u.pathname = ultimo.includes('.')
+          ? u.pathname.slice(0, u.pathname.lastIndexOf('/') + 1)
+          : u.pathname + '/';
+      }
+      return u.href;
+    } catch {
+      console.warn('NANNO: PUBLIC_BASE_URL mal escrita (falta https://?):', configurada);
+      return location.href;   // mal escrita: mejor seguir andando
+    }
+  }
+
   /* URL de la tarjeta de un cliente. Usa la dirección definitiva configurada
      para que los QR ya repartidos no se rompan si se cambia de hosting. */
   function urlTarjeta(qrToken) {
-    const base = CONFIG.PUBLIC_BASE_URL || location.href;
-    const u = new URL('customer.html', base.endsWith('/') ? base : base + '/');
+    const u = new URL('customer.html', baseTarjeta());
     u.searchParams.set('id', qrToken);
     return u.href;
   }

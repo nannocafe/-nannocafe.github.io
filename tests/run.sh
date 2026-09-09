@@ -34,3 +34,13 @@ q -d nanno -f tests/_supabase_grants.sql >/dev/null 2>&1
 psql -h "$SOCK" -p $PORT -U postgres -d nanno -v ON_ERROR_STOP=1 -f tests/schema_test.sql 2>&1 \
   | grep -vE "^(SET|INSERT|DO|RESET)$" \
   | sed 's|psql:tests/schema_test.sql:[0-9]*: NOTICE:  ||'
+
+# ---- pruebas de JavaScript (solo si hay node instalado) ----
+if command -v node >/dev/null; then
+  echo
+  echo '################ 7. LINKS DE LAS TARJETAS (regresión) ################'
+  node --check app/app.js && echo 'OK · app.js no tiene errores de sintaxis'
+  node tests/url_test.mjs
+else
+  echo; echo '(sin node: se saltean las pruebas de JavaScript)'
+fi
