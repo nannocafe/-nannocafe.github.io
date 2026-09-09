@@ -90,6 +90,7 @@
 
   <div class="actions">
     <a id="openCard" class="action" target="_blank" rel="noopener">Ver tarjeta y QR</a>
+    <a id="detailWhats" class="action" target="_blank" rel="noopener">💬 Enviar por WhatsApp</a>
   </div>
 
   <form id="editForm">
@@ -116,7 +117,25 @@
   </div>
 </dialog>
 
+<!-- Cliente recién creado: cómo le llega la tarjeta ------------------- -->
+<dialog id="createdDialog">
+  <button type="button" id="createdClose" class="close">×</button>
+  <h2>Cliente creado</h2>
+  <p id="createdName" class="center"></p>
+  <div class="center"><canvas id="createdQr"></canvas></div>
+  <p class="center"><small>El cliente puede escanear este código con la cámara
+     de su celular para guardar su tarjeta.</small></p>
+  <div class="actions">
+    <a id="createdWhats" class="action primary" target="_blank" rel="noopener">💬 Enviar por WhatsApp</a>
+    <a id="createdOpen" class="action" target="_blank" rel="noopener">Abrir tarjeta</a>
+  </div>
+  <p id="createdNoPhone" class="hidden"><small>Sin teléfono cargado no se le
+     puede mandar por WhatsApp. Se le puede editar el teléfono desde su ficha.</small></p>
+  <button type="button" id="createdDone" class="ghost full">Listo</button>
+</dialog>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <script src="config.js"></script>
 <script src="app.js"></script>
 </body>

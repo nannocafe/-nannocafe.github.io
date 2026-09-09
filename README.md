@@ -90,6 +90,9 @@ Una vez publicado, poner esa dirección en `PUBLIC_BASE_URL` dentro de
 PUBLIC_BASE_URL: "https://nanno-cafe.netlify.app"
 ```
 
+En el mismo archivo está `WHATSAPP_PREFIJO`, que ya viene en `"549"`
+(celulares de Argentina) y solo hay que tocarlo si el negocio no está acá.
+
 Los QR de los clientes apuntan a esa dirección. Conviene dejarla fija **antes**
 de repartir la primera tarjeta, porque si después se cambia de hosting, los QR
 que la gente ya guardó dejan de abrir.
@@ -98,12 +101,26 @@ que la gente ya guardó dejan de abrir.
 
 1. Entrar al panel con el usuario del paso 4.
 2. Crear un cliente de prueba → aparece su tarjeta con el QR.
-3. Abrir `scan.html` desde el celular y escanear ese QR.
-4. Sumar 4 cafés y canjear el regalo.
-5. Probarlo en un iPhone y en un Android: los permisos de cámara se piden
+3. Probar el botón "Enviar por WhatsApp": tiene que abrir el chat con el
+   link de la tarjeta ya escrito.
+4. Abrir `scan.html` desde el celular y escanear ese QR.
+5. Sumar 4 cafés y canjear el regalo.
+6. Probarlo en un iPhone y en un Android: los permisos de cámara se piden
    distinto en cada uno.
 
 ---
+
+## Cómo le llega la tarjeta al cliente
+
+Apenas se crea un cliente aparece una pantalla con tres formas de entregársela,
+para no depender de que se acuerde de guardar el link:
+
+- **Escaneando el QR de la pantalla** con la cámara de su propio celular.
+- **Por WhatsApp**, con el mensaje y el link ya escritos (necesita el teléfono cargado).
+- **Abriendo la tarjeta** para mostrársela.
+
+Si después la pierde, se lo busca en el panel y desde su ficha se le puede
+volver a mandar.
 
 ## Cómo funcionan los permisos
 

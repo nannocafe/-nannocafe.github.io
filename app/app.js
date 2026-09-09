@@ -94,6 +94,54 @@
     return `Faltan ${faltan} café${faltan === 1 ? '' : 's'} para el regalo.`;
   }
 
+  /* --------------------------------------------------------------------
+     WhatsApp
+     -------------------------------------------------------------------- */
+
+  /* Pasa un teléfono escrito como sea a lo que espera wa.me.
+     En Argentina el número nacional de celular son 10 dígitos (área +
+     abonado); hay que sacarle el 0 de adelante y el 15 del medio, y
+     anteponer 549. El prefijo se puede cambiar desde config.js. */
+  function telefonoWhatsApp(telefono) {
+    const prefijo = String(CONFIG.WHATSAPP_PREFIJO || '549');
+    let d = String(telefono || '').replace(/\D/g, '');
+    if (!d) return null;
+
+    if (d.startsWith('00')) d = d.slice(2);
+
+    // ¿Ya viene con código de país?
+    const pais = prefijo.replace(/9$/, '');           // '549' -> '54'
+    if (d.startsWith(pais)) {
+      d = d.slice(pais.length);
+      if (d.startsWith('9')) d = d.slice(1);          // el 9 lo agregamos al final
+    } else if (d.startsWith('0')) {
+      d = d.replace(/^0+/, '');                       // 0 de larga distancia
+    }
+
+    // Sacar el 15, que puede estar después de un área de 2, 3 o 4 dígitos.
+    if (d.length > 10) {
+      for (const i of [2, 3, 4]) {
+        if (d.slice(i, i + 2) === '15' && d.length - 2 === 10) {
+          d = d.slice(0, i) + d.slice(i + 2);
+          break;
+        }
+      }
+    }
+
+    if (d.length < 8) return null;                    // muy corto, no es un teléfono
+    return prefijo + d;
+  }
+
+  function linkWhatsApp(cliente) {
+    const numero = telefonoWhatsApp(cliente.phone);
+    if (!numero) return null;
+    const texto =
+      `¡Hola ${cliente.name}! Esta es tu tarjeta de fidelidad de Nanno Café ☕\n\n` +
+      `Comprás 4 cafés y el 5.º es gratis. Guardá este link y mostralo cuando vengas:\n` +
+      urlTarjeta(cliente.qr_token);
+    return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
+  }
+
   /* Dirección base contra la que se arma el link de una tarjeta.
      Si no hay PUBLIC_BASE_URL configurada, se resuelve relativo a la página
      actual (que es lo correcto: index.html y customer.html son hermanos). */
@@ -251,13 +299,36 @@
     await ocupado($('#clientForm button.primary'), async () => {
       const { data, error } = await sb.from('clients')
         .insert({ name: nombre, phone: $('#phone').value.trim() || null })
-        .select('qr_token').single();
+        .select('*').single();
       if (error) {
         $('#clientError').textContent = mensajeDeError(error);
         return;
       }
-      location.href = urlTarjeta(data.qr_token);
+      $('#dialog').close();
+      mostrarEntrega(data);
     });
+  }
+
+  /* Cómo hace el cliente para quedarse con su tarjeta: escaneándola del
+     mostrador, o recibiéndola por WhatsApp. Sin esto la tarjeta se perdía. */
+  function mostrarEntrega(cliente) {
+    const link = urlTarjeta(cliente.qr_token);
+    $('#createdName').textContent = cliente.name;
+    $('#createdOpen').href = link;
+
+    const whats = linkWhatsApp(cliente);
+    $('#createdWhats').classList.toggle('hidden', !whats);
+    $('#createdNoPhone').classList.toggle('hidden', !!whats);
+    if (whats) $('#createdWhats').href = whats;
+
+    if (typeof QRCode !== 'undefined') {
+      QRCode.toCanvas($('#createdQr'), link, { width: 200, margin: 1 });
+    }
+
+    const cerrar = async () => { $('#createdDialog').close(); await cargarPanel(); };
+    $('#createdClose').onclick = cerrar;
+    $('#createdDone').onclick = cerrar;
+    $('#createdDialog').showModal();
   }
 
   async function abrirDetalle(id) {
@@ -272,6 +343,11 @@
     $('#detailError').textContent = '';
     $('#detailHistory').innerHTML = '<p>Cargando historial…</p>';
     $('#openCard').href = urlTarjeta(c.qr_token);
+
+    const whats = linkWhatsApp(c);
+    $('#detailWhats').classList.toggle('hidden', !whats);
+    if (whats) $('#detailWhats').href = whats;
+
     $('#clientDialog').showModal();
 
     $('#editForm').onsubmit = async ev => {

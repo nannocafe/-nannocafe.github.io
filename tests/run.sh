@@ -41,6 +41,9 @@ if command -v node >/dev/null; then
   echo '################ 7. LINKS DE LAS TARJETAS (regresión) ################'
   node --check app/app.js && echo 'OK · app.js no tiene errores de sintaxis'
   node tests/url_test.mjs
+  echo
+  echo '################ 8. TELÉFONOS PARA WHATSAPP ################'
+  node tests/whatsapp_test.mjs
 else
   echo; echo '(sin node: se saltean las pruebas de JavaScript)'
 fi
