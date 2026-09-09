@@ -520,6 +520,9 @@
         const msg = mensajeDeError(error);
         if (msg === 'RAPID_DUPLICATE') {
           // Recién se le sumó un café. Puede ser un doble toque sin querer.
+          // Se limpia el "Café sumado ✓" anterior para no dar dos mensajes
+          // contradictorios a la vez.
+          $('#message').textContent = '';
           $('#confirmRapid').classList.remove('hidden');
           return;
         }
