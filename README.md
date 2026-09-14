@@ -13,6 +13,10 @@ La documentación original del proyecto (del 4/9/2026) sigue en
 `CONTEXTO_DESARROLLO_NANNO_CAFE_FIDELIDAD.md`, `ESTADO_PROYECTO.md` y
 `README_DESARROLLADOR.md`.
 
+> **¿Sos de Nanno Café y lo estás instalando por primera vez?**
+> Seguí [`PUESTA_EN_MARCHA.md`](PUESTA_EN_MARCHA.md), que es la misma
+> receta explicada paso a paso y sin tecnicismos.
+
 ---
 
 ## Puesta en marcha
@@ -73,13 +77,29 @@ update public.staff set active = false where email = 'elqueseva@ejemplo.com';
 Copiar `app/config.example.js` a `app/config.js` y poner la URL y la anon key
 del paso 1.
 
-### 7. Publicar
+### 7. Publicar en GitHub Pages
 
-Los archivos de `app/` son estáticos: sirve cualquier hosting.
-Lo más rápido es arrastrar la carpeta `app/` a [Netlify Drop](https://app.netlify.com/drop).
+El repositorio tiene que vivir en la cuenta de GitHub **de la cafetería**, no
+en la de quien desarrolla: la dirección publicada queda grabada en los QR de
+los clientes.
+
+En el repositorio: **Settings** → **Pages** → en *Source*, elegir
+**GitHub Actions**. El workflow `.github/workflows/pages.yml` publica la
+carpeta `app/` en cada push a `main`.
+
+La dirección queda:
+
+```
+https://<usuaria>.github.io/nanno-cafe/
+```
 
 **Tiene que ser HTTPS.** Los navegadores no dejan usar la cámara en sitios sin
-candado, así que el escáner no funciona en `http://`.
+candado, así que el escáner no funciona en `http://`. GitHub Pages ya sirve
+todo por HTTPS.
+
+Para un dominio propio (`nannocafe.com.ar`), se agrega en **Settings → Pages →
+Custom domain** y se apunta el DNS. Conviene decidirlo antes de repartir la
+primera tarjeta.
 
 ### 8. Fijar la dirección definitiva
 
@@ -87,7 +107,7 @@ Una vez publicado, poner esa dirección en `PUBLIC_BASE_URL` dentro de
 `config.js` y volver a subir:
 
 ```js
-PUBLIC_BASE_URL: "https://nanno-cafe.netlify.app"
+PUBLIC_BASE_URL: "https://nannocafe.github.io/nanno-cafe/"
 ```
 
 En el mismo archivo está `WHATSAPP_PREFIJO`, que ya viene en `"549"`
