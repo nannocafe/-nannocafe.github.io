@@ -90,7 +90,7 @@ carpeta `app/` en cada push a `main`.
 La dirección queda:
 
 ```
-https://nannocafe.github.io/
+https://nannocafe.github.io/-nannocafe.github.io/
 ```
 
 **Tiene que ser HTTPS.** Los navegadores no dejan usar la cámara en sitios sin
@@ -107,7 +107,7 @@ Una vez publicado, poner esa dirección en `PUBLIC_BASE_URL` dentro de
 `config.js` y volver a subir:
 
 ```js
-PUBLIC_BASE_URL: "https://nannocafe.github.io/"
+PUBLIC_BASE_URL: "https://nannocafe.github.io/-nannocafe.github.io/"
 ```
 
 En el mismo archivo está `WHATSAPP_PREFIJO`, que ya viene en `"549"`

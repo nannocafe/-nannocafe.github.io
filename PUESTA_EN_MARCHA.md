@@ -22,7 +22,7 @@ Ya está definida y **queda para siempre**, porque es adonde apuntan los QR de
 los clientes:
 
 ```
-https://nannocafe.github.io/
+https://nannocafe.github.io/-nannocafe.github.io/
 ```
 
 Sale de dos cosas que ya decidimos: el usuario de GitHub (`nannocafe`) y el
@@ -143,7 +143,7 @@ Completá los valores y dejalo así (con tus datos reales):
 window.NANNO_CONFIG = {
   SUPABASE_URL: "https://abcdefgh.supabase.co",
   SUPABASE_ANON_KEY: "la clave larga del paso 9",
-  PUBLIC_BASE_URL: "https://nannocafe.github.io/",
+  PUBLIC_BASE_URL: "https://nannocafe.github.io/-nannocafe.github.io/",
   WHATSAPP_PREFIJO: "549"
 };
 ```
@@ -164,7 +164,7 @@ vuelve a publicar sola.
 
 Desde tu celular, con datos o wifi:
 
-1. Abrí `https://nannocafe.github.io/` → te pide mail y
+1. Abrí `https://nannocafe.github.io/-nannocafe.github.io/` → te pide mail y
    contraseña (los del paso 7).
 2. Cargá un cliente de prueba con tu propio teléfono.
 3. Probá el botón de **WhatsApp**: te tiene que abrir el chat con el link ya
