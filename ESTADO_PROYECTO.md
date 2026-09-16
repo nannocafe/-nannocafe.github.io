@@ -1,7 +1,7 @@
 # Estado del proyecto
 
 **Fecha:** 15/09/2026
-**Situación:** listo para publicar. Esperando que la cafetería cree sus cuentas.
+**Situación:** publicado y funcionando. Falta dar de alta al personal y probar en teléfonos reales.
 
 ## Decisiones cerradas con la dueña (14/09/2026)
 
@@ -32,18 +32,35 @@
 
 ## Qué falta, en orden
 
-1. **Ella:** cuenta de GitHub, repo `nanno-cafe` público, agregar al
-   desarrollo como colaborador.
-2. **Desarrollo:** subir el código.
-3. **Ella:** Settings → Pages → Source: *GitHub Actions*. Es un setting del
-   repositorio: un colaborador no puede tocarlo.
-4. **Ella:** proyecto en Supabase (puede entrar con la misma cuenta de GitHub),
-   correr `app/supabase.sql`, apagar "Enable signups", crear su usuario y
-   habilitarlo en la tabla `staff`.
-5. **Ella:** pasar la Project URL y la anon key. Son públicas por diseño; la
-   `service_role` no sale nunca de su cuenta.
-6. **Desarrollo:** completar `config.js` y publicar.
-7. **Los dos:** probar en un iPhone y un Android reales, con cámara.
+1. **Invitar a la dueña como usuaria**: Authentication → Users → *Invite user*,
+   así elige ella su propia contraseña.
+2. **Habilitarla en `staff`** con el insert del README. Sin esto entra al panel
+   pero no puede operar.
+3. **Probar en un iPhone y un Android reales**, con cámara. Es lo único que no
+   se puede verificar a distancia.
+
+## Lo que ya está andando
+
+**App publicada:** https://nannocafe.github.io/-nannocafe.github.io/
+Repositorio `nannocafe/-nannocafe.github.io`, Pages sirviendo desde el workflow.
+
+**Base:** proyecto `oyqfdutkqjyjocmermjl` en la organización de la cafetería.
+Schema aplicado, `config.js` conectado.
+
+**Verificado contra el proyecto real, no en local:**
+
+| Prueba | Resultado |
+|---|---|
+| Anónimo suma café | `42501 permission denied` |
+| Anónimo canjea regalo | `42501 permission denied` |
+| Anónimo ve estadísticas | `42501 permission denied` |
+| Anónimo lee clientes o historial | vacío (RLS) |
+| Anónimo escribe un cliente | `42501` violación de RLS |
+| Tarjeta pública del cliente | funciona sin login, como debe |
+| Registro público | `422 signup_disabled` |
+| Login por mail | habilitado |
+
+Para repetirlas sobre la base: `tests/verificar_instalacion.sql` en el SQL Editor.
 
 ## Decisión abierta
 
