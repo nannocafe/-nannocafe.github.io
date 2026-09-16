@@ -213,13 +213,15 @@ $$;
 grant execute on function public.add_coffee(uuid, boolean) to authenticated;
 grant execute on function public.redeem_gift(uuid)         to authenticated;
 
--- Se revoca a PUBLIC, no a anon. PostgreSQL le da EXECUTE a PUBLIC apenas se
--- crea una función, y anon accede por ahí: "revoke ... from anon" no le saca
--- nada, porque anon nunca tuvo un permiso propio que revocar. Sacándoselo a
--- PUBLIC quedan habilitados solo los roles nombrados arriba.
-revoke execute on function public.add_coffee(uuid, boolean) from public;
-revoke execute on function public.redeem_gift(uuid)         from public;
-revoke execute on function public.is_staff()                from public;
+-- Hay que revocarle a PUBLIC *y* a anon, porque el permiso llega por dos vías:
+--   1. PostgreSQL le da EXECUTE a PUBLIC apenas se crea una función.
+--   2. Supabase deja puesto un ALTER DEFAULT PRIVILEGES que además le da un
+--      permiso propio a anon sobre toda función nueva del schema public.
+-- Revocar solo una de las dos deja la otra en pie. Los grants de arriba, que
+-- son explícitos para authenticated, sobreviven a estos revoke.
+revoke execute on function public.add_coffee(uuid, boolean) from public, anon;
+revoke execute on function public.redeem_gift(uuid)         from public, anon;
+revoke execute on function public.is_staff()                from public, anon;
 revoke execute on function public.get_client_for_qr(text)   from public;
 
 -- ----------------------------------------------------------------------------
@@ -242,4 +244,4 @@ as $$
 $$;
 
 grant execute on function public.dashboard_stats() to authenticated;
-revoke execute on function public.dashboard_stats() from public;
+revoke execute on function public.dashboard_stats() from public, anon;
