@@ -213,9 +213,14 @@ $$;
 grant execute on function public.add_coffee(uuid, boolean) to authenticated;
 grant execute on function public.redeem_gift(uuid)         to authenticated;
 
-revoke execute on function public.add_coffee(uuid, boolean) from anon;
-revoke execute on function public.redeem_gift(uuid)         from anon;
-revoke execute on function public.is_staff()                from anon;
+-- Se revoca a PUBLIC, no a anon. PostgreSQL le da EXECUTE a PUBLIC apenas se
+-- crea una función, y anon accede por ahí: "revoke ... from anon" no le saca
+-- nada, porque anon nunca tuvo un permiso propio que revocar. Sacándoselo a
+-- PUBLIC quedan habilitados solo los roles nombrados arriba.
+revoke execute on function public.add_coffee(uuid, boolean) from public;
+revoke execute on function public.redeem_gift(uuid)         from public;
+revoke execute on function public.is_staff()                from public;
+revoke execute on function public.get_client_for_qr(text)   from public;
 
 -- ----------------------------------------------------------------------------
 -- 6. Resumen para el panel
@@ -237,4 +242,4 @@ as $$
 $$;
 
 grant execute on function public.dashboard_stats() to authenticated;
-revoke execute on function public.dashboard_stats() from anon;
+revoke execute on function public.dashboard_stats() from public;
