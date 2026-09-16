@@ -1,7 +1,7 @@
 # Estado del proyecto
 
 **Fecha:** 16/09/2026
-**Situación:** en uso. Probado en un teléfono real de punta a punta hasta sumar un café.
+**Situación:** EN PRODUCCIÓN. La dueña ya entra y opera desde su celular.
 
 ## Decisiones cerradas con la dueña (14/09/2026)
 
@@ -39,11 +39,9 @@
    distinto en iPhone y en Android.
 3. **Borrar el cliente de prueba** (Table Editor → `clients`) antes de cargar
    gente real, así los contadores arrancan limpios.
-4. **Rotar la secret key** de Supabase: se compartió por chat el 15/09 y nunca
-   se revocó. No la usa nadie, así que rotarla no rompe nada.
-5. **Confirmar el Site URL** en Authentication → URL Configuration. Tiene que
-   ser la dirección de la app y no `localhost:3000`, o el mail de recuperación
-   no lleva a ningún lado. No se puede verificar desde afuera.
+
+Hecho el 16/09: secret key rotada y Site URL confirmado. Verificado después de
+rotar que la app sigue conectando y que los permisos siguen cerrados.
 
 ## Decidido: sin dominio propio ni SMPT propio, por ahora (16/09/2026)
 
