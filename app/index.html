@@ -31,6 +31,27 @@
       <button class="primary">Ingresar</button>
       <p id="loginError" class="error"></p>
     </form>
+    <button type="button" id="forgot" class="ghost full">¿Olvidaste tu contraseña?</button>
+    <form id="forgotForm" class="hidden">
+      <label>Email<input id="forgotEmail" type="email" autocomplete="username" required></label>
+      <button class="secondary">Mandarme el link</button>
+      <p id="forgotMsg"></p>
+    </form>
+  </section>
+
+  <!-- Volvió del mail de recuperación: elige contraseña nueva ---------- -->
+  <section id="recovery" class="card hidden">
+    <h2>Elegí tu nueva contraseña</h2>
+    <p><small>Este link se usa una sola vez. Cuando guardes, ya podés entrar
+       con la contraseña nueva.</small></p>
+    <form id="recoveryForm">
+      <label>Nueva contraseña<input id="recPass" type="password"
+        autocomplete="new-password" minlength="8" required></label>
+      <label>Repetila<input id="recPass2" type="password"
+        autocomplete="new-password" minlength="8" required></label>
+      <button class="primary">Guardar contraseña</button>
+      <p id="recoveryMsg" class="error"></p>
+    </form>
   </section>
 
   <!-- Usuario logueado pero sin permiso ------------------------------- -->
@@ -57,6 +78,7 @@
     <div class="actions">
       <a class="action" href="scan.html">📷 Escanear QR</a>
       <button id="newClient" class="action">＋ Nuevo cliente</button>
+      <button id="changePass" class="action">🔑 Cambiar contraseña</button>
     </div>
 
     <section class="card">
@@ -138,6 +160,20 @@
   <p id="createdNoPhone" class="hidden"><small>Sin teléfono cargado no se le
      puede mandar por WhatsApp. Se le puede editar el teléfono desde su ficha.</small></p>
   <button type="button" id="createdDone" class="ghost full">Listo</button>
+</dialog>
+
+<!-- Cambiar contraseña estando adentro ---------------------------------- -->
+<dialog id="passDialog">
+  <form id="passForm">
+    <button type="button" id="passClose" class="close">×</button>
+    <h2>Cambiar contraseña</h2>
+    <label>Nueva contraseña<input id="passNew" type="password"
+      autocomplete="new-password" minlength="8" required></label>
+    <label>Repetila<input id="passNew2" type="password"
+      autocomplete="new-password" minlength="8" required></label>
+    <button class="primary">Guardar</button>
+    <p id="passMsg" class="error"></p>
+  </form>
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>

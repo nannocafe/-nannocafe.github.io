@@ -23,3 +23,5 @@ button:disabled{opacity:.55;cursor:progress}
 .action,button,.ghost{min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 /* La × de los diálogos quedaba en ~26px: imposible de acertar con el pulgar. */
 .close{width:44px;height:44px;display:grid;place-items:center;margin:-10px -10px 0 0;color:#8a756b}
+/* Mensajes de que algo salió bien (contraseña cambiada, mail enviado). */
+.ok{color:#2e7d32}

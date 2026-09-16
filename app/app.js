@@ -20,6 +20,15 @@
     });
   }
 
+  /* Los mails de auth (invitación, recuperación) vuelven con el token en el
+     hash. supabase-js lo consume y limpia la URL apenas arranca, así que hay
+     que leerlo ANTES de crear el cliente o se pierde. */
+  const HASH_ENTRADA = String(location.hash || '');
+  const parametrosHash = new URLSearchParams(HASH_ENTRADA.replace(/^#/, ''));
+  const ES_RECUPERACION = parametrosHash.get('type') === 'recovery';
+  const ERROR_DEL_MAIL = parametrosHash.get('error_description') ||
+                         parametrosHash.get('error') || '';
+
   const sb = window.supabase?.createClient(
     CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
@@ -57,6 +66,24 @@
       boton.disabled = false;
       boton.textContent = textoOriginal;
     }
+  }
+
+  /* Los errores del mail vienen en inglés y en jerga. Se explican acá porque
+     el que los lee es el personal de la cafetería, no un programador. */
+  function mensajeDelMail(crudo) {
+    const m = String(crudo || '').toLowerCase();
+    if (m.includes('expired') || m.includes('invalid')) {
+      return 'Ese link ya no sirve: los links del mail se usan una sola vez y ' +
+             'vencen. Pedí uno nuevo con “¿Olvidaste tu contraseña?”.';
+    }
+    if (m.includes('access_denied')) return 'El link no fue aceptado. Pedí uno nuevo.';
+    return String(crudo).replace(/\+/g, ' ');
+  }
+
+  /* Dirección del panel, para que el mail sepa adónde volver. */
+  function urlDelPanel() {
+    try { return new URL('index.html', baseTarjeta()).href; }
+    catch { return location.href; }
   }
 
   const sesion = async () => (await sb.auth.getSession()).data.session;
@@ -196,12 +223,68 @@
       });
     };
 
+    /* ---- Olvidé mi contraseña ---- */
+    $('#forgot').onclick = () => {
+      $('#forgotForm').classList.toggle('hidden');
+      $('#forgotEmail').value = $('#email').value.trim();
+      $('#forgotEmail').focus();
+    };
+
+    $('#forgotForm').onsubmit = async e => {
+      e.preventDefault();
+      const msg = $('#forgotMsg');
+      msg.className = '';
+      await ocupado(e.submitter || $('#forgotForm button'), async () => {
+        await sb.auth.resetPasswordForEmail($('#forgotEmail').value.trim(),
+          { redirectTo: urlDelPanel() });
+        // Se contesta lo mismo exista o no la cuenta: si no, cualquiera podría
+        // usar esta pantalla para averiguar qué mails están registrados.
+        msg.className = 'ok';
+        msg.textContent = 'Si ese mail tiene cuenta, te llega un link en un ' +
+          'par de minutos. Revisá spam, y usalo apenas llegue: vence.';
+      });
+    };
+
+    /* ---- Volvió del mail: elegir contraseña nueva ---- */
+    $('#recoveryForm').onsubmit = async e => {
+      e.preventDefault();
+      await guardarContrasena(e, $('#recPass'), $('#recPass2'), $('#recoveryMsg'),
+        'Listo. Ya podés entrar con la contraseña nueva.', true);
+    };
+
+    /* ---- Cambiarla estando adentro ---- */
+    $('#changePass').onclick = () => {
+      $('#passMsg').textContent = '';
+      $('#passForm').reset();
+      $('#passDialog').showModal();
+    };
+    $('#passClose').onclick = () => $('#passDialog').close();
+    $('#passForm').onsubmit = async e => {
+      e.preventDefault();
+      await guardarContrasena(e, $('#passNew'), $('#passNew2'), $('#passMsg'),
+        'Contraseña cambiada.', false);
+    };
+
     $('#logout').onclick = async () => { await sb.auth.signOut(); location.reload(); };
     $('#newClient').onclick = () => abrirNuevoCliente();
     $('#close').onclick = () => $('#dialog').close();
     $('#clientForm').onsubmit = crearCliente;
     $('#search').oninput = () => listarClientes();   // filtra en memoria, sin red
     $('#detailClose').onclick = () => $('#clientDialog').close();
+
+    // Si el mail devolvió un error (link vencido o ya usado), explicarlo acá
+    // en vez de dejar la pantalla de login como si nada hubiera pasado.
+    if (ERROR_DEL_MAIL) {
+      $('#loginError').textContent = mensajeDelMail(ERROR_DEL_MAIL);
+    }
+
+    // Viene de un link de recuperación: primero la contraseña nueva. No se
+    // entra al panel todavía, aunque la sesión de recuperación ya exista.
+    if (ES_RECUPERACION) {
+      $('#login').classList.add('hidden');
+      $('#recovery').classList.remove('hidden');
+      return;
+    }
 
     if (!await sesion()) return;
 
@@ -215,6 +298,34 @@
     $('#login').classList.add('hidden');
     $('#app').classList.remove('hidden');
     await cargarPanel();
+  }
+
+  /* Guarda una contraseña nueva. La usan la pantalla de recuperación y el
+     diálogo de "cambiar contraseña": el paso a Supabase es el mismo, cambia
+     solo qué se hace después. */
+  async function guardarContrasena(evento, campo1, campo2, salida, exito, recargar) {
+    salida.className = 'error';
+    const p1 = campo1.value, p2 = campo2.value;
+
+    if (p1 !== p2) { salida.textContent = 'Las dos contraseñas no coinciden.'; return; }
+    if (p1.length < 8) { salida.textContent = 'Poné al menos 8 caracteres.'; return; }
+
+    await ocupado(evento.submitter || evento.target.querySelector('button.primary'), async () => {
+      const { error } = await sb.auth.updateUser({ password: p1 });
+      if (error) {
+        salida.textContent = /session|jwt|token/i.test(String(error.message))
+          ? 'El link ya venció. Pedí uno nuevo desde “¿Olvidaste tu contraseña?”.'
+          : mensajeDeError(error);
+        return;
+      }
+      salida.className = 'ok';
+      salida.textContent = exito;
+      if (recargar) {
+        // Se sale de la sesión de recuperación para que entre con la nueva.
+        await sb.auth.signOut();
+        setTimeout(() => { location.href = urlDelPanel(); }, 1800);
+      }
+    });
   }
 
   async function cargarPanel() {

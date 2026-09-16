@@ -165,7 +165,8 @@ permisos, bloquean la fila mientras operan y dejan registro de quién hizo qué.
 Levanta un PostgreSQL descartable, le aplica `app/supabase.sql` y verifica 20
 cosas: que un intruso no pueda leer ni tocar nada, que la regla de 4+1 funcione,
 que no se pueda canjear dos veces el mismo regalo, que el doble toque no cuente
-doble y que dar de baja a un cliente no borre su historial.
+doble y que dar de baja a un cliente no borre su historial. Aparte prueba los
+links de las tarjetas, los teléfonos de WhatsApp y la recuperación de contraseña.
 No toca la base real. Requiere `brew install postgresql@16`.
 
 ## Datos personales

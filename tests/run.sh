@@ -44,6 +44,9 @@ if command -v node >/dev/null; then
   echo
   echo '################ 8. TELÉFONOS PARA WHATSAPP ################'
   node tests/whatsapp_test.mjs
+  echo
+  echo '################ 9. RECUPERAR CONTRASEÑA ################'
+  node tests/recovery_test.mjs
 else
   echo; echo '(sin node: se saltean las pruebas de JavaScript)'
 fi
