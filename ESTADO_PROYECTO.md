@@ -44,13 +44,24 @@
 5. **Confirmar el Site URL** en Authentication → URL Configuration. Tiene que
    ser la dirección de la app y no `localhost:3000`, o el mail de recuperación
    no lleva a ningún lado. No se puede verificar desde afuera.
-6. **SMTP propio.** El de Supabase manda 2 mails por hora, solo a miembros del
-   proyecto, y la propia documentación dice que no es para producción. Mientras
-   tanto la dueña puede cambiar su contraseña desde el panel, y como es Owner
-   puede resetearla desde el dashboard si se queda afuera.
-7. **Decidir el dominio propio.** Ya pesa por tres motivos: la dirección queda
-   atada a la cuenta de GitHub, los QR repartidos apuntan ahí, y sin dominio la
-   entrega de los mails es peor.
+
+## Decidido: sin dominio propio ni SMPT propio, por ahora (16/09/2026)
+
+La cafetería es chica y no lo justifica. Es una decisión tomada, no un
+pendiente: no hace falta volver a plantearla salvo que cambie la escala.
+
+**Qué implica convivir con esto:**
+
+- El mail de recuperación de contraseña es poco confiable: el SMTP de Supabase
+  manda 2 por hora y solo a miembros del proyecto. La salida es que la dueña
+  cambie su contraseña desde el panel, y si se queda afuera, que la resetee
+  desde el dashboard, que puede porque es Owner.
+- La dirección sigue siendo `nannocafe.github.io/-nannocafe.github.io/`.
+
+**Cuándo reverlo:** si suma empleadas que necesiten recuperar su contraseña
+solas, si los mails empiezan a hacer falta para algo más, o si quiere mudarse
+de hosting. Si algún día se compra el dominio, GitHub redirige la dirección
+vieja a la nueva, así que los QR ya repartidos seguirían funcionando.
 
 ## Lo que ya está andando
 
