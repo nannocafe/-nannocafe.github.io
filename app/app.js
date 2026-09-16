@@ -436,8 +436,11 @@
       QRCode.toCanvas($('#createdQr'), link, { width: 200, margin: 1 });
     }
 
+    let imagenLista = null;
+    imagenTarjeta(cliente.name, link).then(b => { imagenLista = b; }).catch(() => {});
+
     $('#createdSave').onclick = () =>
-      guardarTarjeta(cliente.name, link, $('#createdSave'), $('#createdSaveMsg'));
+      guardarTarjeta(cliente.name, link, $('#createdSave'), $('#createdSaveMsg'), imagenLista);
 
     const cerrar = async () => { $('#createdDialog').close(); await cargarPanel(); };
     $('#createdClose').onclick = cerrar;
@@ -765,16 +768,24 @@
     'Tarjeta Nanno Cafe - ' +
     String(nombre || 'cliente').replace(/[^\p{L}\p{N} ]/gu, '').trim().slice(0, 40) + '.png';
 
-  /* Guarda la imagen por el mejor camino que ofrezca el dispositivo. */
-  async function guardarTarjeta(nombre, link, boton, salida) {
+  /* Guarda la imagen por el mejor camino que ofrezca el dispositivo.
+
+     `blobListo` es la imagen generada de antemano, y no es una optimización:
+     navigator.share() solo funciona si se llama en caliente, apenas el usuario
+     toca el botón. Si primero hay que dibujar el QR y esperar el toBlob, iOS
+     considera vencido el permiso del toque y rechaza el compartir sin avisar.
+     Con la imagen ya hecha, entre el toque y el share no hay ningún await. */
+  async function guardarTarjeta(nombre, link, boton, salida, blobListo) {
     await ocupado(boton, async () => {
       if (salida) { salida.className = ''; salida.textContent = ''; }
-      let blob;
-      try {
-        blob = await imagenTarjeta(nombre, link);
-      } catch (e) {
-        if (salida) { salida.className = 'error'; salida.textContent = mensajeDeError(e); }
-        return;
+      let blob = blobListo;
+      if (!blob) {
+        try {
+          blob = await imagenTarjeta(nombre, link);
+        } catch (e) {
+          if (salida) { salida.className = 'error'; salida.textContent = mensajeDeError(e); }
+          return;
+        }
       }
 
       const archivo = new File([blob], archivoTarjeta(nombre), { type: 'image/png' });
@@ -832,8 +843,13 @@
     }
     QRCode.toCanvas($('#qr'), link, { width: 230, margin: 1 });
 
+    // Se genera ya, mientras el cliente mira la tarjeta, así cuando toca el
+    // botón no hay que esperar nada (ver guardarTarjeta).
+    let imagenLista = null;
+    imagenTarjeta(c.name, link).then(b => { imagenLista = b; }).catch(() => {});
+
     $('#saveCard').onclick = () =>
-      guardarTarjeta(c.name, link, $('#saveCard'), $('#saveMsg'));
+      guardarTarjeta(c.name, link, $('#saveCard'), $('#saveMsg'), imagenLista);
   }
 
   /* ====================================================================== */

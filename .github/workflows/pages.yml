@@ -25,6 +25,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+
+      # GitHub Pages sirve todo con cache-control de 10 minutos, así que un
+      # celular puede seguir usando el app.js viejo un rato largo después de
+      # publicar. Pegándole la versión al nombre, el navegador lo pide de nuevo
+      # apenas cambia. Solo toca la copia que se publica, no el repositorio.
+      - name: Versionar los assets
+        run: |
+          V="${GITHUB_SHA::7}"
+          sed -i "s|src=\"app\.js\"|src=\"app.js?v=$V\"|g; \
+                  s|src=\"config\.js\"|src=\"config.js?v=$V\"|g; \
+                  s|href=\"styles\.css\"|href=\"styles.css?v=$V\"|g" app/*.html
+          grep -o 'app\.js?v=[a-f0-9]*' app/index.html | head -1
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app
