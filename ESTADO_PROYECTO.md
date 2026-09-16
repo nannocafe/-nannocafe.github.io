@@ -1,7 +1,7 @@
 # Estado del proyecto
 
-**Fecha:** 15/09/2026
-**Situación:** publicado y funcionando. Falta dar de alta al personal y probar en teléfonos reales.
+**Fecha:** 16/09/2026
+**Situación:** en uso. Probado en un teléfono real de punta a punta hasta sumar un café.
 
 ## Decisiones cerradas con la dueña (14/09/2026)
 
@@ -32,12 +32,25 @@
 
 ## Qué falta, en orden
 
-1. **Invitar a la dueña como usuaria**: Authentication → Users → *Invite user*,
-   así elige ella su propia contraseña.
-2. **Habilitarla en `staff`** con el insert del README. Sin esto entra al panel
-   pero no puede operar.
-3. **Probar en un iPhone y un Android reales**, con cámara. Es lo único que no
-   se puede verificar a distancia.
+1. **Terminar la prueba en el teléfono**: llegar a 4 cafés, ver que no deje
+   sumar el quinto, canjear el regalo, probar el doble toque y mirar el
+   historial del cliente.
+2. **Probar en el otro sistema operativo.** Los permisos de cámara se piden
+   distinto en iPhone y en Android.
+3. **Borrar el cliente de prueba** (Table Editor → `clients`) antes de cargar
+   gente real, así los contadores arrancan limpios.
+4. **Rotar la secret key** de Supabase: se compartió por chat el 15/09 y nunca
+   se revocó. No la usa nadie, así que rotarla no rompe nada.
+5. **Confirmar el Site URL** en Authentication → URL Configuration. Tiene que
+   ser la dirección de la app y no `localhost:3000`, o el mail de recuperación
+   no lleva a ningún lado. No se puede verificar desde afuera.
+6. **SMTP propio.** El de Supabase manda 2 mails por hora, solo a miembros del
+   proyecto, y la propia documentación dice que no es para producción. Mientras
+   tanto la dueña puede cambiar su contraseña desde el panel, y como es Owner
+   puede resetearla desde el dashboard si se queda afuera.
+7. **Decidir el dominio propio.** Ya pesa por tres motivos: la dirección queda
+   atada a la cuenta de GitHub, los QR repartidos apuntan ahí, y sin dominio la
+   entrega de los mails es peor.
 
 ## Lo que ya está andando
 
@@ -61,6 +74,14 @@ Schema aplicado, `config.js` conectado.
 | Login por mail | habilitado |
 
 Para repetirlas sobre la base: `tests/verificar_instalacion.sql` en el SQL Editor.
+
+**Agregado el 16/09:**
+
+- Cambiar y recuperar la contraseña desde el panel, sin pasar por el dashboard.
+- Guardar la tarjeta como imagen, para que el cliente la tenga en la galería y
+  no dependa de tener señal en el mostrador. Probado en un teléfono real.
+- El deploy le pega la versión a `app.js`, `config.js` y `styles.css`, porque
+  Pages cachea 10 minutos y los cambios tardaban en llegar a un celular.
 
 ## Decisión abierta
 
