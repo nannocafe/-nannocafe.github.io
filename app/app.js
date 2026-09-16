@@ -436,6 +436,9 @@
       QRCode.toCanvas($('#createdQr'), link, { width: 200, margin: 1 });
     }
 
+    $('#createdSave').onclick = () =>
+      guardarTarjeta(cliente.name, link, $('#createdSave'), $('#createdSaveMsg'));
+
     const cerrar = async () => { $('#createdDialog').close(); await cargarPanel(); };
     $('#createdClose').onclick = cerrar;
     $('#createdDone').onclick = cerrar;
@@ -699,6 +702,111 @@
     }
   }
 
+  /* --------------------------------------------------------------------
+     Guardar la tarjeta como imagen
+     --------------------------------------------------------------------
+     En el mostrador el cliente puede no tener señal, y si la tarjeta vive
+     solo detrás de un link, sin internet no hay tarjeta. Una foto en la
+     galería siempre está. Se dibuja una tarjeta entera y no el QR pelado,
+     para que se reconozca entre las fotos y se entienda de qué es. */
+
+  const MARCA = '#6b4636', TINTA = '#3e2a21', SUAVE = '#8a756b', CREMA = '#f7f0de';
+
+  function rectanguloRedondeado(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y,     x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x,     y + h, r);
+    ctx.arcTo(x,     y + h, x,     y,     r);
+    ctx.arcTo(x,     y,     x + w, y,     r);
+    ctx.closePath();
+  }
+
+  async function imagenTarjeta(nombre, link) {
+    if (typeof QRCode === 'undefined') throw new Error('Falta la librería del QR.');
+
+    const A = 640, ALTO = 900, LADO_QR = 380;
+    const lienzo = document.createElement('canvas');
+    lienzo.width = A; lienzo.height = ALTO;
+    const ctx = lienzo.getContext('2d');
+
+    ctx.fillStyle = CREMA;  ctx.fillRect(0, 0, A, ALTO);
+    ctx.fillStyle = '#fff'; rectanguloRedondeado(ctx, 36, 36, A - 72, ALTO - 72, 40); ctx.fill();
+
+    const fuente = '-apple-system, system-ui, Segoe UI, Helvetica, Arial, sans-serif';
+    ctx.textAlign = 'center';
+
+    ctx.fillStyle = MARCA; ctx.font = `600 34px ${fuente}`;
+    ctx.fillText('NANNO CAFÉ', A / 2, 130);
+
+    // El nombre puede ser largo: se achica hasta que entre en vez de cortarse.
+    let cuerpo = 46;
+    do { ctx.font = `700 ${cuerpo}px ${fuente}`; cuerpo -= 2; }
+    while (cuerpo > 22 && ctx.measureText(nombre).width > A - 140);
+    ctx.fillStyle = TINTA;
+    ctx.fillText(nombre, A / 2, 196);
+
+    const qr = new Image();
+    qr.src = await QRCode.toDataURL(link, { width: LADO_QR, margin: 1 });
+    await qr.decode();
+    ctx.drawImage(qr, (A - LADO_QR) / 2, 240, LADO_QR, LADO_QR);
+
+    ctx.fillStyle = TINTA; ctx.font = `600 30px ${fuente}`;
+    ctx.fillText('4 cafés y el 5.º es gratis', A / 2, 700);
+    ctx.fillStyle = SUAVE; ctx.font = `24px ${fuente}`;
+    ctx.fillText('Mostrá este código en el mostrador.', A / 2, 748);
+    ctx.fillText('Funciona sin internet.', A / 2, 784);
+
+    return await new Promise((ok, mal) =>
+      lienzo.toBlob(b => b ? ok(b) : mal(new Error('No se pudo crear la imagen.')), 'image/png'));
+  }
+
+  const archivoTarjeta = nombre =>
+    'Tarjeta Nanno Cafe - ' +
+    String(nombre || 'cliente').replace(/[^\p{L}\p{N} ]/gu, '').trim().slice(0, 40) + '.png';
+
+  /* Guarda la imagen por el mejor camino que ofrezca el dispositivo. */
+  async function guardarTarjeta(nombre, link, boton, salida) {
+    await ocupado(boton, async () => {
+      if (salida) { salida.className = ''; salida.textContent = ''; }
+      let blob;
+      try {
+        blob = await imagenTarjeta(nombre, link);
+      } catch (e) {
+        if (salida) { salida.className = 'error'; salida.textContent = mensajeDeError(e); }
+        return;
+      }
+
+      const archivo = new File([blob], archivoTarjeta(nombre), { type: 'image/png' });
+
+      // En el celular abre el menú del sistema, con "Guardar en Fotos".
+      if (navigator.canShare?.({ files: [archivo] })) {
+        try {
+          await navigator.share({ files: [archivo], title: 'Mi tarjeta de Nanno Café' });
+          return;
+        } catch (e) {
+          if (e?.name === 'AbortError') return;   // la cerró a propósito
+        }
+      }
+
+      // Escritorio y Android: descarga directa. No se revoca la URL porque
+      // la imagen de abajo la sigue usando; la página dura poco.
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement('a'), { href: url, download: archivo.name });
+      document.body.appendChild(a); a.click(); a.remove();
+
+      // Algunos iPhone ignoran la descarga sin decir nada: se muestra la
+      // imagen para poder mantenerla apretada y guardarla a mano.
+      if (salida && !salida.querySelector('img')) {
+        salida.className = 'center';
+        salida.innerHTML =
+          '<p><small>Si no se guardó sola, mantené apretada la imagen ' +
+          'y elegí <b>Guardar en Fotos</b>.</small></p>' +
+          `<img src="${url}" alt="Mi tarjeta de Nanno Café" style="max-width:280px;border-radius:14px">`;
+      }
+    });
+  }
+
   function dibujarTarjeta(c) {
     $('#card').innerHTML = `
       <div class="logo" style="margin:auto">${esc(inicial(c.name))}</div>
@@ -708,7 +816,10 @@
           ? '🎁 Tenés un café de regalo esperándote.'
           : `Llevás ${c.coffees} de ${CICLO} cafés.`}</p>
       <canvas id="qr"></canvas>
-      <p><small>Mostrá este código en el mostrador.</small></p>`;
+      <p><small>Mostrá este código en el mostrador.</small></p>
+      <button id="saveCard" class="action full">⬇️ Guardar mi tarjeta como imagen</button>
+      <p><small>Así la tenés en el celular aunque no tengas internet.</small></p>
+      <div id="saveMsg"></div>`;
     dibujarSellos($('#cardStamps'), c.coffees, c.free_coffee_available);
 
     // Si la librería del QR no cargó, mostramos el link igual en vez de
@@ -720,6 +831,9 @@
       return;
     }
     QRCode.toCanvas($('#qr'), link, { width: 230, margin: 1 });
+
+    $('#saveCard').onclick = () =>
+      guardarTarjeta(c.name, link, $('#saveCard'), $('#saveMsg'));
   }
 
   /* ====================================================================== */

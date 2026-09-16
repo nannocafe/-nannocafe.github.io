@@ -47,6 +47,9 @@ if command -v node >/dev/null; then
   echo
   echo '################ 9. RECUPERAR CONTRASEÑA ################'
   node tests/recovery_test.mjs
+  echo
+  echo '################ 10. TARJETA DESCARGABLE ################'
+  node tests/imagen_test.mjs
 else
   echo; echo '(sin node: se saltean las pruebas de JavaScript)'
 fi
