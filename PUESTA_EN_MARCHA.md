@@ -16,42 +16,53 @@ negocio al que siempre tengas acceso. Son las llaves del sistema.
 
 ---
 
-## Antes de empezar: elegí bien el nombre de usuario
+## La dirección de la app
 
-La dirección de la app va a ser:
+Ya está definida y **queda para siempre**, porque es adonde apuntan los QR de
+los clientes:
 
 ```
-https://NOMBREDEUSUARIO.github.io/nanno-cafe/
+https://nannocafe.github.io/
 ```
 
-Ese `NOMBREDEUSUARIO` es el de la cuenta de GitHub y **queda para siempre**,
-porque es la dirección a la que apuntan los QR de los clientes. Si más adelante
-se cambia, los QR que la gente ya guardó dejan de abrir.
-
-Elegí algo sobrio y del negocio (`nannocafe`, `nanno-cafe`), no un apodo.
+Sale de dos cosas que ya decidimos: el usuario de GitHub (`nannocafe`) y el
+nombre del repositorio del paso 2. Si alguna de las dos cambia, los QR que la
+gente ya guardó dejan de abrir. Por eso el paso 2 hay que hacerlo tal cual está
+escrito.
 
 ---
 
-## Paso 1 — Crear la cuenta de GitHub
+## Paso 1 — Crear la cuenta de GitHub ✅ hecho
 
-1. Entrá a [github.com](https://github.com) → **Sign up**.
-2. Usá el mail del negocio y el nombre de usuario que elegiste arriba.
-3. Confirmá el mail.
-4. Activá la verificación en dos pasos cuando te la ofrezca.
+Cuenta `nannocafe`, con el mail del negocio.
+
+Si todavía no lo hiciste: activá la **verificación en dos pasos**
+(*Settings → Password and authentication*). Esta cuenta es la llave de todo el
+sistema.
 
 ## Paso 2 — Crear el repositorio
 
 1. Arriba a la derecha, **+** → **New repository**.
-2. **Repository name:** `nanno-cafe` (tal cual, en minúscula y con guión).
+2. **Repository name:** `nannocafe.github.io`
+
+   Sí, con el `.github.io` incluido y escrito igual que tu usuario. No es un
+   capricho: cuando el repositorio se llama así, GitHub publica la app en la
+   raíz (`nannocafe.github.io/`) en vez de meterla en una subcarpeta. El link
+   que les mandás a los clientes queda mucho más corto.
 3. Dejalo en **Public**. Es necesario para que la publicación sea gratis.
    El código no tiene contraseñas adentro: lo que protege los datos son los
    permisos de la base, no que el código esté escondido.
-4. No marques nada más. **Create repository**.
+4. No marques nada más (ni README, ni .gitignore, ni licencia).
+   **Create repository**.
 
 ## Paso 3 — Darle acceso a Matías para que suba el código
 
 1. En el repo: **Settings** → **Collaborators** → **Add people**.
-2. Poné su usuario de GitHub.
+2. Poné exactamente: `matiaszacagnino-personal`
+3. Le va a llegar la invitación por mail y él sube el código.
+
+El repositorio sigue siendo tuyo: podés sacarle el acceso cuando quieras desde
+esa misma pantalla.
 
 Él sube el código y te avisa. El repositorio sigue siendo tuyo: podés sacarle
 el acceso cuando quieras desde esa misma pantalla.
@@ -132,7 +143,7 @@ Completá los valores y dejalo así (con tus datos reales):
 window.NANNO_CONFIG = {
   SUPABASE_URL: "https://abcdefgh.supabase.co",
   SUPABASE_ANON_KEY: "la clave larga del paso 9",
-  PUBLIC_BASE_URL: "https://NOMBREDEUSUARIO.github.io/nanno-cafe/",
+  PUBLIC_BASE_URL: "https://nannocafe.github.io/",
   WHATSAPP_PREFIJO: "549"
 };
 ```
@@ -153,7 +164,7 @@ vuelve a publicar sola.
 
 Desde tu celular, con datos o wifi:
 
-1. Abrí `https://NOMBREDEUSUARIO.github.io/nanno-cafe/` → te pide mail y
+1. Abrí `https://nannocafe.github.io/` → te pide mail y
    contraseña (los del paso 7).
 2. Cargá un cliente de prueba con tu propio teléfono.
 3. Probá el botón de **WhatsApp**: te tiene que abrir el chat con el link ya

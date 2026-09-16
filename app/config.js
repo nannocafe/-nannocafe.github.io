@@ -8,7 +8,7 @@ window.NANNO_CONFIG = {
   // Dirección definitiva donde va a estar publicada la app.
   // Los QR de los clientes apuntan acá, así que conviene definirla ANTES
   // de empezar a repartir tarjetas. Si se deja vacío usa la dirección actual.
-  PUBLIC_BASE_URL: "",
+  PUBLIC_BASE_URL: "https://nannocafe.github.io/",
 
   // Prefijo de país para los links de WhatsApp. "549" es Argentina (celulares).
   WHATSAPP_PREFIJO: "549"
