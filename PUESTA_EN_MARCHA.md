@@ -185,8 +185,18 @@ Recién ahí empezá a cargar clientes reales.
 
 ## Guardátelo a mano
 
-En el celular, con la página abierta: **Compartir** → **Agregar a inicio**.
-Queda como si fuera una app, sin la barra del navegador.
+Con la página abierta en el celular:
+
+- **iPhone (Safari):** el botón de **Compartir** (el cuadradito con la flecha)
+  → **Agregar a inicio**.
+- **Android (Chrome):** los **tres puntitos** → **Instalar app** o
+  **Agregar a pantalla principal**.
+
+Queda con el icono de Nanno y se abre a pantalla completa, sin la barra del
+navegador. Es bastante más cómodo para atender, y se evita el manotazo de
+cerrar una pestaña sin querer.
+
+Hacelo también con la pantalla de **Escanear**, así la tenés a un toque.
 
 ---
 

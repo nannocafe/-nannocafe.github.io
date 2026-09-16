@@ -16,3 +16,10 @@ button:disabled{opacity:.55;cursor:progress}
 .logo.brandmark{background:#f7f0de;border-radius:50%}
 .logo.brandmark img{width:52%;height:auto;display:block}
 .top .brand{margin:0}
+
+/* --- uso con el pulgar en el celular --- */
+/* Los botones tienen que llegar a 44px: abajo de eso se falla el toque, y en
+   el mostrador se opera rápido y con una sola mano. */
+.action,button,.ghost{min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+/* La × de los diálogos quedaba en ~26px: imposible de acertar con el pulgar. */
+.close{width:44px;height:44px;display:grid;place-items:center;margin:-10px -10px 0 0;color:#8a756b}

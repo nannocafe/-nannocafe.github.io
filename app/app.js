@@ -442,7 +442,12 @@
     try {
       await lector.start(
         { facingMode: 'environment' },
-        { fps: 10, qrbox: 250 },
+        // qrbox fijo en 250 se rompe en pantallas angostas: si el cuadro es más
+        // ancho que el video, html5-qrcode falla. Se calcula sobre el vivo.
+        { fps: 10, qrbox: (anchoVideo, altoVideo) => {
+            const lado = Math.floor(Math.min(anchoVideo, altoVideo) * 0.7);
+            return { width: lado, height: lado };
+          } },
         async texto => {
           if (!leyendo) return;
           await pararCamara();

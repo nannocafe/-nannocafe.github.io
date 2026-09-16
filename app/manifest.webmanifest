@@ -1,0 +1,17 @@
+{
+  "name": "Nanno Café · Fidelidad",
+  "short_name": "Nanno",
+  "description": "Tarjeta de fidelidad de Nanno Café: 4 cafés y el 5.º es gratis.",
+  "lang": "es-AR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f0ea",
+  "theme_color": "#6b4636",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
