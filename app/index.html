@@ -116,6 +116,21 @@
 
   <div id="detailStamps" class="stamps"></div>
 
+  <!-- Carga manual, para cuando no hubo tiempo de escanear el QR -->
+  <div class="actions">
+    <button type="button" id="addCoffeeOpen" class="action primary">☕ Agregar café</button>
+    <button type="button" id="detailGift" class="action secondary hidden">🎁 Entregar café de regalo</button>
+  </div>
+  <form id="addCoffeeForm" class="card hidden">
+    <label>¿Cuántos cafés?<input id="addCoffeeCount" type="number"
+      inputmode="numeric" min="1" max="20" value="1" required></label>
+    <div class="actions">
+      <button class="primary">Aceptar</button>
+      <button type="button" id="addCoffeeCancel" class="ghost">Cancelar</button>
+    </div>
+  </form>
+  <p id="detailMsg" class="center"></p>
+
   <div class="actions">
     <a id="openCard" class="action" target="_blank" rel="noopener">Ver tarjeta y QR</a>
     <a id="detailWhats" class="action" target="_blank" rel="noopener">💬 Enviar por WhatsApp</a>

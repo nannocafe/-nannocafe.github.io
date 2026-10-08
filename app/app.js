@@ -47,6 +47,7 @@
     if (m.includes('utilizar el regalo')) return 'Este cliente tiene un café de regalo sin usar. Primero canjealo.';
     if (m.includes('No hay regalo')) return 'Este cliente no tiene un regalo disponible.';
     if (m.includes('Cliente inexistente')) return 'No se encontró el cliente.';
+    if (m.includes('Cantidad inválida')) return 'La cantidad tiene que ser entre 1 y 20.';
     if (m.includes('Failed to fetch') || m.includes('NetworkError')) {
       return 'Sin conexión. Revisá el wifi o los datos del celular.';
     }
@@ -465,7 +466,56 @@
     $('#detailWhats').classList.toggle('hidden', !whats);
     if (whats) $('#detailWhats').href = whats;
 
-    $('#clientDialog').showModal();
+    // Se vuelve a llamar después de sumar un café, con el diálogo ya abierto.
+    if (!$('#clientDialog').open) {
+      $('#detailMsg').textContent = '';
+      $('#clientDialog').showModal();
+    }
+
+    /* ---- Agregar café a mano, sin escanear ---- */
+    $('#addCoffeeForm').classList.add('hidden');
+    $('#addCoffeeOpen').classList.toggle('hidden', c.free_coffee_available);
+    $('#detailGift').classList.toggle('hidden', !c.free_coffee_available);
+
+    $('#addCoffeeOpen').onclick = () => {
+      $('#detailMsg').textContent = '';
+      $('#addCoffeeCount').value = 1;
+      $('#addCoffeeForm').classList.remove('hidden');
+      $('#addCoffeeCount').focus();
+    };
+    $('#addCoffeeCancel').onclick = () => $('#addCoffeeForm').classList.add('hidden');
+
+    $('#addCoffeeForm').onsubmit = async ev => {
+      ev.preventDefault();
+      const pedidos = parseInt($('#addCoffeeCount').value, 10);
+      await ocupado($('#addCoffeeForm button.primary'), async () => {
+        const { data: sumados, error } = await sb.rpc('add_coffees',
+          { p_client_id: id, p_count: pedidos });
+        if (error) return $('#detailError').textContent = mensajeDeError(error);
+        await cargarPanel();
+        await abrirDetalle(id);
+        const ahora = clientesEnMemoria.find(x => x.id === id);
+        let msg = sumados === 1 ? 'Café sumado ✓' : `${sumados} cafés sumados ✓`;
+        if (ahora?.free_coffee_available) {
+          msg += ' ¡Completó la tarjeta! El próximo es gratis 🎁';
+          const afuera = pedidos - sumados;
+          if (afuera > 0) {
+            msg += ` Quedaron ${afuera} sin sumar: entregá el regalo y cargalos después.`;
+          }
+        }
+        $('#detailMsg').textContent = msg;
+      });
+    };
+
+    $('#detailGift').onclick = async () => {
+      await ocupado($('#detailGift'), async () => {
+        const { error } = await sb.rpc('redeem_gift', { p_client_id: id });
+        if (error) return $('#detailError').textContent = mensajeDeError(error);
+        await cargarPanel();
+        await abrirDetalle(id);
+        $('#detailMsg').textContent = 'Regalo entregado ✓ La tarjeta arranca de nuevo.';
+      });
+    };
 
     $('#editForm').onsubmit = async ev => {
       ev.preventDefault();

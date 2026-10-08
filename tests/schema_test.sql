@@ -46,6 +46,14 @@ exception when others then
 end $$;
 
 do $$ begin
+  perform public.add_coffees('33333333-3333-3333-3333-333333333333', 3);
+  raise exception 'FALLO: el intruso se cargó cafés desde el panel';
+exception when others then
+  if sqlerrm like 'FALLO%' then raise; end if;
+  raise notice 'OK · no puede cargar cafés a mano (%)', sqlerrm;
+end $$;
+
+do $$ begin
   insert into public.clients(name) values ('cliente trucho');
   raise exception 'FALLO: el intruso creó un cliente';
 exception when others then
@@ -74,6 +82,14 @@ do $$ begin
 exception when others then
   if sqlerrm like 'FALLO%' then raise; end if;
   raise notice 'OK · sin login no se puede sumar café';
+end $$;
+
+do $$ begin
+  perform public.add_coffees('33333333-3333-3333-3333-333333333333', 3);
+  raise exception 'FALLO: anon cargó cafés a mano';
+exception when others then
+  if sqlerrm like 'FALLO%' then raise; end if;
+  raise notice 'OK · sin login no se pueden cargar cafés a mano';
 end $$;
 
 do $$ declare r record; begin
@@ -177,6 +193,51 @@ do $$ declare v_id uuid; c int; begin
   select coffees into c from public.clients where clients.id = v_id;
   if c <> 2 then raise exception 'FALLO: deberia tener 2 cafes, tiene %', c; end if;
   raise notice 'OK · si confirma que compro dos, se suman los dos (c=2)';
+end $$;
+
+\echo '################ 6b. CARGA MANUAL DESDE EL PANEL (sin QR) ################'
+do $$ declare v_id uuid; c int; g boolean; n int; ev int; begin
+  insert into public.clients(name) values ('Test Carga Manual') returning id into v_id;
+
+  n := public.add_coffees(v_id, 1);
+  select coffees into c from public.clients where clients.id = v_id;
+  if n <> 1 or c <> 1 then raise exception 'FALLO: con 1 sumó %, quedó c=%', n, c; end if;
+  raise notice 'OK · por defecto suma 1 café';
+
+  -- justo después de otro café: no lo frena el control de doble toque
+  n := public.add_coffees(v_id, 2);
+  select coffees, free_coffee_available into c, g from public.clients where clients.id = v_id;
+  if n <> 2 or c <> 3 or g then raise exception 'FALLO: con 2 sumó %, quedó c=%, regalo=%', n, c, g; end if;
+  raise notice 'OK · suma varios de una vez, sin pasar por el doble toque (c=3)';
+
+  n := public.add_coffees(v_id, 5);
+  select coffees, free_coffee_available into c, g from public.clients where clients.id = v_id;
+  if n <> 1 or c <> 4 or not g then raise exception 'FALLO: con 5 sumó %, quedó c=%, regalo=%', n, c, g; end if;
+  raise notice 'OK · se frena al completar la tarjeta y avisa que sumó solo % (regalo=true)', n;
+
+  select count(*) into ev from public.loyalty_events
+    where client_id = v_id and event_type = 'coffee';
+  if ev <> 4 then raise exception 'FALLO: el historial tiene % cafés, deberían ser 4', ev; end if;
+  raise notice 'OK · el historial tiene un movimiento por café (4)';
+
+  begin
+    perform public.add_coffees(v_id, 1);
+    raise exception 'FALLO: dejó cargar cafés con el regalo pendiente';
+  exception when others then
+    if sqlerrm like 'FALLO%' then raise; end if;
+    raise notice 'OK · con el regalo pendiente no deja cargar más';
+  end;
+
+  perform public.redeem_gift(v_id);
+  foreach n in array array[0, -1, 21] loop
+    begin
+      perform public.add_coffees(v_id, n);
+      raise exception 'FALLO: aceptó la cantidad %', n;
+    exception when others then
+      if sqlerrm like 'FALLO%' then raise; end if;
+    end;
+  end loop;
+  raise notice 'OK · rechaza cantidades fuera de 1 a 20';
 end $$;
 
 \echo '################ 6. BAJA DE CLIENTE Y BÚSQUEDA POR TELÉFONO ################'

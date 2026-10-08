@@ -210,7 +210,59 @@ begin
 end
 $$;
 
+-- Carga manual desde el panel, para cuando no hubo tiempo de escanear el QR.
+-- Suma varios cafés de una vez, pero respeta la regla: se frena al completar
+-- la tarjeta, porque el regalo se tiene que canjear antes de seguir sumando.
+-- Devuelve cuántos sumó de verdad, para que la pantalla avise si quedaron
+-- cafés afuera. No pasa por el control de doble toque: acá la cantidad se
+-- tipea a propósito.
+create or replace function public.add_coffees(p_client_id uuid, p_count integer)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  c integer;
+  g boolean;
+  n integer;
+begin
+  if not public.is_staff() then
+    raise exception 'No autorizado';
+  end if;
+
+  if p_count is null or p_count < 1 or p_count > 20 then
+    raise exception 'Cantidad inválida';
+  end if;
+
+  select coffees, free_coffee_available into c, g
+  from public.clients where id = p_client_id and active
+  for update;
+
+  if c is null then
+    raise exception 'Cliente inexistente';
+  end if;
+
+  if g then
+    raise exception 'Primero hay que utilizar el regalo';
+  end if;
+
+  n := least(p_count, 4 - c);
+
+  update public.clients
+    set coffees = c + n, free_coffee_available = (c + n = 4)
+    where id = p_client_id;
+
+  insert into public.loyalty_events(client_id, event_type, performed_by)
+  select p_client_id, 'coffee', auth.uid()
+  from generate_series(1, n);
+
+  return n;
+end
+$$;
+
 grant execute on function public.add_coffee(uuid, boolean) to authenticated;
+grant execute on function public.add_coffees(uuid, integer) to authenticated;
 grant execute on function public.redeem_gift(uuid)         to authenticated;
 
 -- Hay que revocarle a PUBLIC *y* a anon, porque el permiso llega por dos vías:
@@ -220,7 +272,8 @@ grant execute on function public.redeem_gift(uuid)         to authenticated;
 -- Revocar solo una de las dos deja la otra en pie. Los grants de arriba, que
 -- son explícitos para authenticated, sobreviven a estos revoke.
 revoke execute on function public.add_coffee(uuid, boolean) from public, anon;
-revoke execute on function public.redeem_gift(uuid)         from public, anon;
+revoke execute on function public.add_coffees(uuid, integer) from public, anon;
+revoke execute on function public.redeem_gift(uuid)        from public, anon;
 revoke execute on function public.is_staff()                from public, anon;
 revoke execute on function public.get_client_for_qr(text)   from public;
 
