@@ -153,7 +153,8 @@ Hay tres niveles y cada uno puede hacer solo lo suyo:
 | Personal (en la tabla `staff`) | Todo el panel y el mostrador | Editar saldos a mano en la tabla |
 
 El saldo de cafés **no se puede escribir directamente** desde el navegador.
-Solo lo cambian las funciones `add_coffee` y `redeem_gift`, que verifican
+Solo lo cambian las funciones `add_coffee`, `add_coffees` (carga manual desde
+el panel) y `redeem_gift`, que verifican
 permisos, bloquean la fila mientras operan y dejan registro de quién hizo qué.
 
 ## Correr las pruebas
@@ -162,7 +163,7 @@ permisos, bloquean la fila mientras operan y dejan registro de quién hizo qué.
 ./tests/run.sh
 ```
 
-Levanta un PostgreSQL descartable, le aplica `app/supabase.sql` y verifica 20
+Levanta un PostgreSQL descartable, le aplica `app/supabase.sql` y verifica 44
 cosas: que un intruso no pueda leer ni tocar nada, que la regla de 4+1 funcione,
 que no se pueda canjear dos veces el mismo regalo, que el doble toque no cuente
 doble y que dar de baja a un cliente no borre su historial. Aparte prueba los

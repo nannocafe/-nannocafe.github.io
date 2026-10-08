@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-**Fecha:** 16/09/2026
+**Fecha:** 07/10/2026
 **Situación:** EN PRODUCCIÓN. La dueña ya entra y opera desde su celular.
 
 ## Decisiones cerradas con la dueña (14/09/2026)
@@ -26,9 +26,16 @@
 - Alta, búsqueda, edición y baja de clientes.
 - QR por cliente, escaneo, y entrega de la tarjeta por WhatsApp.
 - Historial de eventos y estadísticas.
+- Carga manual de cafés desde la ficha del cliente, con cantidad, para cuando
+  no hay tiempo de escanear (07/10/2026). Entregar el regalo también se puede
+  hacer desde la ficha.
+- Café favorito por cliente, listado ordenado por consumo (todo el historial)
+  e invitación por WhatsApp a los que menos consumen, con un mensaje armado con
+  su favorito y cómo viene su tarjeta. Se anota cuándo se invitó para no
+  repetir en la misma semana (07/10/2026).
 - Workflow de GitHub Actions que publica `app/` en Pages en cada push.
 - `PUESTA_EN_MARCHA.md`: los 12 pasos de instalación, escritos para la dueña.
-- 20 tests de esquema (`./tests/run.sh`), todos pasando al 15/09/2026.
+- 44 tests de esquema más los de la app (`./tests/run.sh`), todos pasando al 07/10/2026.
 
 ## Qué falta, en orden
 
