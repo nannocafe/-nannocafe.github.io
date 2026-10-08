@@ -33,6 +33,15 @@ alter table public.clients
   add column if not exists phone_digits text
   generated always as (nullif(regexp_replace(coalesce(phone,''),'\D','','g'),'')) stored;
 
+-- Café favorito, para conocer al cliente y personalizar las invitaciones.
+-- Texto libre a propósito: la lista de opciones vive en la app y se puede
+-- cambiar sin tocar la base.
+alter table public.clients add column if not exists favorite_coffee text;
+
+-- Cuándo se lo invitó por WhatsApp a volver, para no escribirle dos veces
+-- la misma semana.
+alter table public.clients add column if not exists last_invited_at timestamptz;
+
 create index if not exists clients_phone_digits_idx on public.clients(phone_digits);
 create index if not exists clients_active_name_idx on public.clients(active, name);
 
@@ -298,3 +307,23 @@ $$;
 
 grant execute on function public.dashboard_stats() to authenticated;
 revoke execute on function public.dashboard_stats() from public, anon;
+
+-- Cuánto consume cada cliente, para ordenar el listado de más a menos.
+-- Cuenta todo el historial, no los sellos de la tarjeta actual, que vuelven
+-- a 0 con cada regalo.
+create or replace function public.client_activity()
+returns table(client_id uuid, coffees_total bigint, last_coffee_at timestamptz)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select e.client_id, count(*), max(e.created_at)
+  from public.loyalty_events e
+  join public.clients c on c.id = e.client_id and c.active
+  where e.event_type = 'coffee' and public.is_staff()
+  group by e.client_id
+$$;
+
+grant execute on function public.client_activity() to authenticated;
+revoke execute on function public.client_activity() from public, anon;

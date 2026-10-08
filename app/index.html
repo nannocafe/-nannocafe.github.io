@@ -86,7 +86,14 @@
         <h3>Clientes</h3>
         <input id="search" placeholder="Buscar nombre o teléfono">
       </div>
-      <p><small>Tocá un cliente para ver su historial o editarlo.</small></p>
+      <label class="orden">Ordenar
+        <select id="orden">
+          <option value="nombre">Por nombre (A–Z)</option>
+          <option value="mas">Los que más consumen</option>
+          <option value="menos">Los que menos consumen</option>
+        </select>
+      </label>
+      <p id="ordenAyuda"><small>Tocá un cliente para ver su historial o editarlo.</small></p>
       <div id="clientList"></div>
     </section>
   </section>
@@ -100,6 +107,7 @@
     <h2>Nuevo cliente</h2>
     <label>Nombre<input id="name" required></label>
     <label>Teléfono<input id="phone" type="tel" oninput="window.Nanno.chequearDuplicado()"></label>
+    <label>Café favorito<select id="fav" class="cafes"></select></label>
     <p id="dupWarning" class="error hidden"></p>
     <button class="primary">Crear y mostrar QR</button>
     <p id="clientError" class="error"></p>
@@ -111,7 +119,7 @@
   <button type="button" id="detailClose" class="close">×</button>
   <div class="customer">
     <b id="detailAvatar"></b>
-    <div><h2 id="detailName"></h2><p id="detailPhone"></p></div>
+    <div><h2 id="detailName"></h2><p id="detailPhone"></p><p id="detailFav"></p></div>
   </div>
 
   <div id="detailStamps" class="stamps"></div>
@@ -140,6 +148,7 @@
     <h3>Editar datos</h3>
     <label>Nombre<input id="editName" required></label>
     <label>Teléfono<input id="editPhone" type="tel"></label>
+    <label>Café favorito<select id="editFav" class="cafes"></select></label>
     <button class="primary">Guardar cambios</button>
   </form>
   <p id="detailError" class="error"></p>

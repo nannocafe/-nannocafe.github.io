@@ -50,6 +50,9 @@ if command -v node >/dev/null; then
   echo
   echo '################ 10. TARJETA DESCARGABLE ################'
   node tests/imagen_test.mjs
+  echo
+  echo '################ 11. INVITACIONES POR WHATSAPP ################'
+  node tests/invitacion_test.mjs
 else
   echo; echo '(sin node: se saltean las pruebas de JavaScript)'
 fi

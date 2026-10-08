@@ -12,6 +12,23 @@
   const CONFIG = window.NANNO_CONFIG || {};
   const CICLO = 4; // cafés a comprar antes del regalo
 
+  // Opciones de "café favorito". Se guardan como texto, así que se pueden
+  // agregar o sacar acá sin tocar la base.
+  const CAFES = ['Espresso', 'Doble espresso', 'Ristretto', 'Americano',
+    'Cortado', 'Lágrima', 'Café con leche', 'Latte', 'Flat white',
+    'Cappuccino', 'Macchiato', 'Mocaccino', 'Café helado', 'Cold brew'];
+
+  const DIA = 24 * 60 * 60 * 1000;
+  const diasDesde = fecha => fecha ? Math.floor((Date.now() - new Date(fecha)) / DIA) : null;
+
+  function haceTanto(fecha) {
+    const d = diasDesde(fecha);
+    if (d === null) return '';
+    if (d <= 0) return 'hoy';
+    if (d === 1) return 'ayer';
+    return `hace ${d} días`;
+  }
+
   if (!CONFIG.SUPABASE_URL || CONFIG.SUPABASE_URL.includes('TU-PROYECTO')) {
     document.addEventListener('DOMContentLoaded', () => {
       document.body.insertAdjacentHTML('afterbegin',
@@ -98,7 +115,7 @@
     let desde = 0, todos = [];
     for (;;) {
       const { data, error } = await sb.from('clients')
-        .select('id,name,phone,qr_token,coffees,free_coffee_available,created_at')
+        .select('id,name,phone,qr_token,coffees,free_coffee_available,created_at,favorite_coffee,last_invited_at')
         .eq('active', true)
         .order('name')
         .range(desde, desde + PAGINA - 1);
@@ -168,6 +185,46 @@
       `Comprás 4 cafés y el 5.º es gratis. Guardá este link y mostralo cuando vengas:\n` +
       urlTarjeta(cliente.qr_token);
     return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
+  }
+
+  /* Mensaje para invitar a volver a alguien que viene poco.
+     Lo que más mueve a volver es lo que ya tiene ganado, así que el mensaje
+     arranca por ahí: el regalo esperando, o cuántos sellos le faltan.
+     Nada de descuentos: la regla 4 + 1 no se toca. Tampoco se le dicen los
+     días exactos que lleva sin venir, que suena a control. */
+  function textoInvitacion(cliente) {
+    const nombre = String(cliente.name || '').trim().split(/\s+/)[0] || '';
+    const fav = cliente.favorite_coffee ? cliente.favorite_coffee.toLowerCase() : '';
+    const cafes = cliente.coffees || 0;
+    const lineas = [`¡Hola ${nombre}! ☕`];
+
+    if (cliente.free_coffee_available) {
+      lineas.push('Te extrañamos en Nanno Café. ¡Tenés un café de regalo esperándote! 🎁');
+      lineas.push(fav ? `¿Pasás esta semana por tu ${fav}?` : '¿Pasás esta semana a buscarlo?');
+    } else if (!cliente.coffees_total) {
+      lineas.push('Todavía no estrenaste tu tarjeta de Nanno Café. ' +
+        `Con cada café sumás un sello y el ${CICLO + 1}.º es gratis.`);
+      lineas.push(fav ? `¿Te esperamos esta semana con un ${fav}?` : '¿Te esperamos esta semana?');
+    } else {
+      lineas.push(fav ? `Te extrañamos en Nanno Café. ¿Se viene un ${fav} esta semana?`
+                      : 'Te extrañamos en Nanno Café. ¿Se viene un cafecito esta semana?');
+      if (cafes > 0) {
+        const faltan = CICLO - cafes;
+        lineas.push(`Ya tenés ${cafes} sello${cafes === 1 ? '' : 's'} en tu tarjeta: ` +
+          `te falta${faltan === 1 ? '' : 'n'} ${faltan} para el café de regalo 🎁`);
+      } else {
+        lineas.push(`Con cada café sumás un sello y el ${CICLO + 1}.º es gratis.`);
+      }
+    }
+
+    lineas.push('', 'Acá está tu tarjeta: ' + urlTarjeta(cliente.qr_token), '', '¡Te esperamos!');
+    return lineas.join('\n');
+  }
+
+  function linkInvitacion(cliente) {
+    const numero = telefonoWhatsApp(cliente.phone);
+    if (!numero) return null;
+    return `https://wa.me/${numero}?text=${encodeURIComponent(textoInvitacion(cliente))}`;
   }
 
   /* Dirección base contra la que se arma el link de una tarjeta.
@@ -271,6 +328,11 @@
     $('#close').onclick = () => $('#dialog').close();
     $('#clientForm').onsubmit = crearCliente;
     $('#search').oninput = () => listarClientes();   // filtra en memoria, sin red
+    $('#orden').onchange = () => listarClientes();
+    document.querySelectorAll('select.cafes').forEach(sel => {
+      sel.innerHTML = '<option value="">Sin definir</option>' +
+        CAFES.map(c => `<option>${esc(c)}</option>`).join('');
+    });
     $('#detailClose').onclick = () => $('#clientDialog').close();
 
     // Si el mail devolvió un error (link vencido o ya usado), explicarlo acá
@@ -331,10 +393,17 @@
 
   async function cargarPanel() {
     try {
-      const [{ data: stats }, clientes] = await Promise.all([
+      const [{ data: stats }, clientes, { data: actividad }] = await Promise.all([
         sb.rpc('dashboard_stats'),
-        traerClientes()
+        traerClientes(),
+        sb.rpc('client_activity')
       ]);
+      const porCliente = new Map((actividad || []).map(a => [a.client_id, a]));
+      for (const c of clientes) {
+        const a = porCliente.get(c.id);
+        c.coffees_total = Number(a?.coffees_total || 0);
+        c.last_coffee_at = a?.last_coffee_at || null;
+      }
       const s = stats?.[0] || {};
       $('#clientsCount').textContent = s.clients_count ?? 0;
       $('#coffeeCount').textContent = s.coffees_count ?? 0;
@@ -364,17 +433,66 @@
       return;
     }
 
-    $('#clientList').innerHTML = filtrados.map(c => `
+    const orden = $('#orden')?.value || 'nombre';
+    const ultimaVisita = c => c.last_coffee_at ? new Date(c.last_coffee_at).getTime() : 0;
+    if (orden === 'mas') {
+      filtrados.sort((a, b) => b.coffees_total - a.coffees_total ||
+                               ultimaVisita(b) - ultimaVisita(a));
+    } else if (orden === 'menos') {
+      // Entre los que consumen igual, primero el que hace más que no viene.
+      filtrados.sort((a, b) => a.coffees_total - b.coffees_total ||
+                               ultimaVisita(a) - ultimaVisita(b));
+    }
+
+    $('#ordenAyuda').innerHTML = orden === 'menos'
+      ? '<small>Con 💬 Invitar le mandás un WhatsApp con su café favorito y ' +
+        'cómo viene su tarjeta, para que vuelva.</small>'
+      : '<small>Tocá un cliente para ver su historial o editarlo.</small>';
+
+    $('#clientList').innerHTML = filtrados.map(c => {
+      let detalle = esc(c.phone || 'sin teléfono');
+      if (orden !== 'nombre') {
+        detalle = c.coffees_total
+          ? `${c.coffees_total} café${c.coffees_total === 1 ? '' : 's'} · ` +
+            `último ${haceTanto(c.last_coffee_at)}`
+          : 'Todavía no vino';
+        if (orden === 'menos' && c.last_invited_at) {
+          detalle += ` · invitado ${haceTanto(c.last_invited_at)}`;
+        }
+      }
+      let invitar = '';
+      if (orden === 'menos' && telefonoWhatsApp(c.phone)) {
+        const reciente = diasDesde(c.last_invited_at) !== null && diasDesde(c.last_invited_at) < 7;
+        invitar = `<a class="action invite ${reciente ? 'recent' : 'primary'}" data-invite="${esc(c.id)}"
+          href="${esc(linkInvitacion(c))}" target="_blank" rel="noopener">💬 Invitar</a>`;
+      }
+      return `
       <div class="client" data-id="${esc(c.id)}" role="button" tabindex="0">
-        <div><b>${esc(c.name)}</b><br><small>${esc(c.phone || 'sin teléfono')}</small></div>
+        <div><b>${esc(c.name)}</b><br><small>${detalle}</small></div>
         <div>
           <span class="pill">${c.coffees}/${CICLO}</span>
           ${c.free_coffee_available ? ' <span class="pill">🎁</span>' : ''}
+          ${invitar}
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     $('#clientList').querySelectorAll('.client').forEach(fila => {
       fila.onclick = () => abrirDetalle(fila.dataset.id);
+    });
+
+    // El link abre WhatsApp solo; acá se anota la fecha para que la próxima
+    // vez se vea que ya se lo invitó. Si falla no importa: el mensaje salió igual.
+    $('#clientList').querySelectorAll('[data-invite]').forEach(boton => {
+      boton.onclick = ev => {
+        ev.stopPropagation();   // que no abra también la ficha
+        const c = clientesEnMemoria.find(x => x.id === boton.dataset.invite);
+        if (!c) return;
+        c.last_invited_at = new Date().toISOString();
+        sb.from('clients').update({ last_invited_at: c.last_invited_at }).eq('id', c.id)
+          .then(() => {}, () => {});
+        setTimeout(listarClientes, 300);
+      };
     });
   }
 
@@ -410,7 +528,8 @@
     }
     await ocupado($('#clientForm button.primary'), async () => {
       const { data, error } = await sb.from('clients')
-        .insert({ name: nombre, phone: $('#phone').value.trim() || null })
+        .insert({ name: nombre, phone: $('#phone').value.trim() || null,
+                  favorite_coffee: $('#fav').value || null })
         .select('*').single();
       if (error) {
         $('#clientError').textContent = mensajeDeError(error);
@@ -454,10 +573,16 @@
     if (!c) return;
     $('#detailName').textContent = c.name;
     $('#detailPhone').textContent = c.phone || 'sin teléfono';
+    $('#detailFav').textContent = c.favorite_coffee ? `☕ Su favorito: ${c.favorite_coffee}` : '';
     $('#detailAvatar').textContent = inicial(c.name);
     dibujarSellos($('#detailStamps'), c.coffees, c.free_coffee_available);
     $('#editName').value = c.name;
     $('#editPhone').value = c.phone || '';
+    // Si el favorito guardado ya no está en la lista, se agrega para no perderlo.
+    if (c.favorite_coffee && !CAFES.includes(c.favorite_coffee)) {
+      $('#editFav').insertAdjacentHTML('beforeend', `<option>${esc(c.favorite_coffee)}</option>`);
+    }
+    $('#editFav').value = c.favorite_coffee || '';
     $('#detailError').textContent = '';
     $('#detailHistory').innerHTML = '<p>Cargando historial…</p>';
     $('#openCard').href = urlTarjeta(c.qr_token);
@@ -526,7 +651,8 @@
       }
       await ocupado($('#editForm button.primary'), async () => {
         const { error } = await sb.from('clients')
-          .update({ name: nuevoNombre, phone: $('#editPhone').value.trim() || null })
+          .update({ name: nuevoNombre, phone: $('#editPhone').value.trim() || null,
+                    favorite_coffee: $('#editFav').value || null })
           .eq('id', id);
         if (error) return $('#detailError').textContent = mensajeDeError(error);
         $('#clientDialog').close();

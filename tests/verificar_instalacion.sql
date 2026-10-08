@@ -37,8 +37,9 @@ with chequeos as (
       join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'public'
         and p.proname in ('is_staff','get_client_for_qr','add_coffee',
-                          'add_coffees','redeem_gift','dashboard_stats')
-        and p.proconfig @> array['search_path=public']) = 6
+                          'add_coffees','redeem_gift','dashboard_stats',
+                          'client_activity')
+        and p.proconfig @> array['search_path=public']) = 7
 
   -- Lo importante: un visitante sin login (rol anon) no puede tocar saldos.
   union all select 6, 'Un desconocido NO puede sumar cafés',
@@ -46,6 +47,9 @@ with chequeos as (
 
   union all select 6, 'Un desconocido NO puede cargar cafés desde el panel',
     not has_function_privilege('anon','public.add_coffees(uuid,integer)','execute')
+
+  union all select 7, 'Un desconocido NO puede ver cuánto consume cada cliente',
+    not has_function_privilege('anon','public.client_activity()','execute')
 
   union all select 7, 'Un desconocido NO puede canjear regalos',
     not has_function_privilege('anon','public.redeem_gift(uuid)','execute')

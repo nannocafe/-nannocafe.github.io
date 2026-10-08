@@ -53,6 +53,12 @@ exception when others then
   raise notice 'OK · no puede cargar cafés a mano (%)', sqlerrm;
 end $$;
 
+do $$ declare n int; begin
+  select count(*) into n from public.client_activity();
+  if n <> 0 then raise exception 'FALLO: el intruso vio cuánto consume cada cliente'; end if;
+  raise notice 'OK · no ve cuánto consume cada cliente';
+end $$;
+
 do $$ begin
   insert into public.clients(name) values ('cliente trucho');
   raise exception 'FALLO: el intruso creó un cliente';
@@ -90,6 +96,14 @@ do $$ begin
 exception when others then
   if sqlerrm like 'FALLO%' then raise; end if;
   raise notice 'OK · sin login no se pueden cargar cafés a mano';
+end $$;
+
+do $$ begin
+  perform public.client_activity();
+  raise exception 'FALLO: anon vio el consumo de los clientes';
+exception when others then
+  if sqlerrm like 'FALLO%' then raise; end if;
+  raise notice 'OK · sin login no se ve el consumo de los clientes';
 end $$;
 
 do $$ declare r record; begin
@@ -238,6 +252,36 @@ do $$ declare v_id uuid; c int; g boolean; n int; ev int; begin
     end;
   end loop;
   raise notice 'OK · rechaza cantidades fuera de 1 a 20';
+end $$;
+
+\echo '################ 6c. CAFÉ FAVORITO Y CONSUMO POR CLIENTE ################'
+do $$ declare v_id uuid; t bigint; ult timestamptz; r record; begin
+  insert into public.clients(name, favorite_coffee) values ('Test Favorito', 'Flat white')
+    returning id into v_id;
+  update public.clients set favorite_coffee = 'Cortado', last_invited_at = now() where id = v_id;
+  if (select favorite_coffee from public.clients where id = v_id) <> 'Cortado' then
+    raise exception 'FALLO: no se guardó el café favorito'; end if;
+  raise notice 'OK · el personal guarda y cambia el café favorito y la fecha de invitación';
+
+  select * into r from public.get_client_for_qr(
+    (select qr_token from public.clients where id = v_id));
+  if to_jsonb(r) ? 'favorite_coffee' then
+    raise exception 'FALLO: la tarjeta pública muestra el favorito'; end if;
+
+  if exists(select 1 from public.client_activity() where client_id = v_id) then
+    raise exception 'FALLO: un cliente sin cafés aparece con consumo'; end if;
+
+  perform public.add_coffees(v_id, 3);
+  select coffees_total, last_coffee_at into t, ult
+    from public.client_activity() where client_id = v_id;
+  if t <> 3 or ult is null then raise exception 'FALLO: consumo = %, último = %', t, ult; end if;
+  raise notice 'OK · el consumo cuenta todos los cafés del historial (3) y la última visita';
+
+  perform public.add_coffees(v_id, 1);
+  perform public.redeem_gift(v_id);
+  select coffees_total into t from public.client_activity() where client_id = v_id;
+  if t <> 4 then raise exception 'FALLO: tras el regalo el consumo quedó en %', t; end if;
+  raise notice 'OK · canjear el regalo no borra lo consumido (sigue en 4)';
 end $$;
 
 \echo '################ 6. BAJA DE CLIENTE Y BÚSQUEDA POR TELÉFONO ################'
