@@ -35,7 +35,7 @@
   repetir en la misma semana (07/10/2026).
 - Workflow de GitHub Actions que publica `app/` en Pages en cada push.
 - `PUESTA_EN_MARCHA.md`: los 12 pasos de instalación, escritos para la dueña.
-- 44 tests de esquema más los de la app (`./tests/run.sh`), todos pasando al 07/10/2026.
+- 35 tests de esquema más los de la app (`./tests/run.sh`), todos pasando al 07/10/2026.
 
 ## Qué falta, en orden
 

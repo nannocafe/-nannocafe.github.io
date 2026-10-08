@@ -163,7 +163,7 @@ permisos, bloquean la fila mientras operan y dejan registro de quién hizo qué.
 ./tests/run.sh
 ```
 
-Levanta un PostgreSQL descartable, le aplica `app/supabase.sql` y verifica 44
+Levanta un PostgreSQL descartable, le aplica `app/supabase.sql` y verifica 35
 cosas: que un intruso no pueda leer ni tocar nada, que la regla de 4+1 funcione,
 que no se pueda canjear dos veces el mismo regalo, que el doble toque no cuente
 doble y que dar de baja a un cliente no borre su historial. Aparte prueba los
